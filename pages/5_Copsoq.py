@@ -369,7 +369,17 @@ def build_general_indicators(df: pd.DataFrame) -> dict:
     total = int(len(work_df))
     nb_hommes = int((genre == "homme").sum())
     nb_femmes = int((genre == "femme").sum())
-    if "Tranche d'age" in work_df.columns:
+    # Calculer la médiane de l'âge si la colonne d'âge existe
+    age_col = _find_by_patterns(cols, [r"\bage\b"])
+    if age_col is not None:
+        age_vals = pd.to_numeric(work_df[age_col], errors="coerce")
+        age_median = age_vals.median(skipna=True)
+        if not pd.isna(age_median):
+            age_moyen = age_median  # Renommez cette variable en age_median pour plus de clarté
+        else:
+            age_moyen = "N/A"
+    elif "Tranche d'age" in work_df.columns:
+        # Fallback sur la tranche d'âge modale si l'âge n'est pas disponible
         tranche_mode = work_df["Tranche d'age"].dropna().mode()
         age_moyen = str(tranche_mode.iloc[0]) if not tranche_mode.empty else "N/A"
     else:
@@ -1285,7 +1295,7 @@ with tab_generales:
     kpi = build_general_indicators(df)
     age_moyen = kpi.get("age_moyen")
     if isinstance(age_moyen, Real):
-        age_moyen_display = f"{age_moyen:.1f} ans"
+        age_moyen_display = f"{age_moyen:.0f} ans"
     elif age_moyen in (None, "", "N/A"):
         age_moyen_display = "N/A"
     else:
@@ -1304,16 +1314,22 @@ with tab_generales:
     sport_img_b64 = image_as_base64("sport.png")
     couple_img_b64 = image_as_base64("couple.png")
 
+    # Calculer les pourcentages pour hommes et femmes
+    total_effectif = kpi['total_effectif']
+    pourcentage_hommes = (kpi['nombre_hommes'] / total_effectif * 100) if total_effectif > 0 else 0
+    pourcentage_femmes = (kpi['nombre_femmes'] / total_effectif * 100) if total_effectif > 0 else 0
+    
+    
     cards = [
-        ("Nombre de Repondant", f"{kpi['total_effectif']}", "&#128101;"),
+        ("Nombre de Repondant", f"{total_effectif}", "&#128101;"),
         (
-            "Nombre d'Hommes",
-            f"{kpi['nombre_hommes']}",
+            f"Nombre d'Hommes ({kpi['nombre_hommes']})",
+            f'<span class="rps-score-value" data-rps-score="true" data-rps-target="{pourcentage_hommes}" data-rps-decimals="1" data-rps-suffix="%" data-rps-final="{pourcentage_hommes:.1f}%">0.0%</span>',
             f'<img class="card-footer-image" src="data:image/png;base64,{homme_img_b64}" alt="homme" />',
         ),
         (
-            "Nombre de Femmes",
-            f"{kpi['nombre_femmes']}",
+            f"Nombre de Femmes ({kpi['nombre_femmes']})",
+            f'<span class="rps-score-value" data-rps-score="true" data-rps-target="{pourcentage_femmes}" data-rps-decimals="1" data-rps-suffix="%" data-rps-final="{pourcentage_femmes:.1f}%">0.0%</span>',
             f'<img class="card-footer-image" src="data:image/png;base64,{femme_img_b64}" alt="femme" />',
         ),
         (
@@ -1322,22 +1338,22 @@ with tab_generales:
             f'<img class="card-footer-image" src="data:image/png;base64,{age_img_b64}" alt="age" />',
         ),
         (
-            "Taux alcool",
-            f"{kpi['taux_alcool']:.1f}%",
+            "Taux d'alcoolique",
+            f'<span class="rps-score-value" data-rps-score="true" data-rps-target="{kpi["taux_alcool"]}" data-rps-decimals="1" data-rps-suffix="%" data-rps-final="{kpi["taux_alcool"]:.1f}%">0.0%</span>',
             f'<img class="card-footer-image" src="data:image/png;base64,{alcool_img_b64}" alt="alcool" />',
         ),
         (
             "Taux fumeur",
-            f"{kpi['taux_fumeur']:.1f}%",
+            f'<span class="rps-score-value" data-rps-score="true" data-rps-target="{kpi["taux_fumeur"]}" data-rps-decimals="1" data-rps-suffix="%" data-rps-final="{kpi["taux_fumeur"]:.1f}%">0.0%</span>',
             f'<img class="card-footer-image" src="data:image/png;base64,{fume_img_b64}" alt="fumeur" />',
         ),
         (
             "Pratique sport",
-            f"{kpi['taux_sport']:.1f}%",
+            f'<span class="rps-score-value" data-rps-score="true" data-rps-target="{kpi["taux_sport"]}" data-rps-decimals="1" data-rps-suffix="%" data-rps-final="{kpi["taux_sport"]:.1f}%">0.0%</span>',
             f'<img class="card-footer-image" src="data:image/png;base64,{sport_img_b64}" alt="sport" />',
         ),
         (
-            "Situation majoritaire",
+            "Situation matrimoniale",
             top_situation,
             f'<img class="card-footer-image" src="data:image/png;base64,{couple_img_b64}" alt="situation matrimoniale" />',
         ),
@@ -1965,35 +1981,215 @@ with tab_croissement:
     if not socio_columns or not outcome_cols:
         st.warning("Variables insuffisantes pour l'analyse bivariee.")
     else:
-        b1, b2 = st.columns(2)
-        socio_label = b1.selectbox("Covariable", list(socio_columns.keys()), key="croisement_covariable")
-        socio_col = socio_columns[socio_label]
-
-        outcome_options = []
-        outcome_lookup = {}
+        # Créer une liste combinée de toutes les variables disponibles
+        all_vars = []
+        var_info = {}
+        
+        # Ajouter les variables sociodémographiques
+        for label, col in socio_columns.items():
+            display_name = label
+            all_vars.append(display_name)
+            var_info[display_name] = {"type": "socio", "col": col, "label": label}
+        
+        # Ajouter les outcomes (sous-domaines RPS)
         for group, cols in domain_map.items():
             for col in cols:
                 if col not in domain_cat_df.columns:
                     continue
-                display = domain_label_map.get(col, col)
-                outcome_options.append(display)
-                outcome_lookup[display] = col
-        selected_outcome_display = b2.selectbox("Outcome", outcome_options, key="croisement_outcome")
-        outcome_col = outcome_lookup[selected_outcome_display]
-
+                display_name = domain_label_map.get(col, col)
+                # Éviter les doublons de noms (si un libellé RPS a le même nom qu'une variable socio)
+                if display_name not in var_info:
+                    all_vars.append(display_name)
+                    var_info[display_name] = {
+                        "type": "outcome", 
+                        "col": col, 
+                        "label": display_name,
+                        "group": group
+                    }
+        
+        # Trier alphabétiquement
+        all_vars.sort()
+        
+        b1, b2 = st.columns(2)
+        
+        # Premier selectbox
+        var1 = b1.selectbox("Variable 1", all_vars, key="croisement_var1")
+        
+        # Filtrer la liste pour le deuxième selectbox (exclure var1)
+        var2_options = [v for v in all_vars if v != var1]
+        
+        # Deuxième selectbox avec les options filtrées
+        var2 = b2.selectbox("Variable 2", var2_options, key="croisement_var2")
+        
+        # Récupérer les informations des variables sélectionnées
+        var1_info = var_info[var1]
+        var2_info = var_info[var2]
+        
+        # Déterminer automatiquement le rôle des variables
+        # Si var1 est socio et var2 est outcome -> idéal
+        # Si var1 est outcome et var2 est socio -> on les inverse
+        if var1_info["type"] == "socio" and var2_info["type"] == "outcome":
+            socio_label = var1
+            socio_col = var1_info["col"]
+            outcome_display = var2
+            outcome_col = var2_info["col"]
+        elif var1_info["type"] == "outcome" and var2_info["type"] == "socio":
+            # Inverser pour avoir socio en X et outcome en Y
+            socio_label = var2
+            socio_col = var2_info["col"]
+            outcome_display = var1
+            outcome_col = var1_info["col"]
+        elif var1_info["type"] == "socio" and var2_info["type"] == "socio":
+            st.warning("⚠️ Vous avez sélectionné deux variables sociodémographiques. Le croisement montrera la répartition de la seconde selon la première.")
+            socio_label = var1
+            socio_col = var1_info["col"]
+            outcome_display = var2
+            # Pour deux variables socio, on utilise la première comme catégorie et la deuxième comme distribution
+            temp_df = socio_df[[socio_col, var2_info["col"]]].dropna()
+            if temp_df.empty:
+                st.warning("Pas de données exploitables.")
+                st.stop()
+            
+            # Créer le tableau croisé avec pourcentages en ligne
+            ct = pd.crosstab(temp_df[socio_col], temp_df[var2_info["col"]], normalize="index").mul(100)
+            
+            # Créer un graphique avec les pourcentages dans les barres
+            fig, ax = plt.subplots(figsize=(10, max(3.5, 0.6 * len(ct) + 1.5)))
+            y = np.arange(len(ct))
+            
+            left = np.zeros(len(ct))
+            colors = plt.cm.Set3(np.linspace(0, 1, len(ct.columns)))
+            
+            for i, (col_name, color) in enumerate(zip(ct.columns, colors)):
+                values = ct[col_name].values
+                bars = ax.barh(y, values, left=left, color=color, label=col_name)
+                
+                # Ajouter les pourcentages dans les barres
+                for j, (bar, val) in enumerate(zip(bars, values)):
+                    if val > 5:  # N'afficher que si le pourcentage est > 5% pour la lisibilité
+                        width = bar.get_width()
+                        x_pos = bar.get_x() + width/2
+                        y_pos = bar.get_y() + bar.get_height()/2
+                        ax.text(x_pos, y_pos, f'{val:.1f}%', 
+                            ha='center', va='center', 
+                            color='black', fontsize=9, fontweight='bold')
+                
+                left += values
+            
+            ax.set_yticks(y, ct.index.astype(str))
+            ax.set_xlim(0, 100)
+            ax.set_xticks(np.arange(0, 101, 10))
+            ax.set_xlabel("Pourcentage (%)")
+            ax.set_title(f"Répartition - {outcome_display} selon {socio_label}")
+            
+            # Légende en bas
+            ax.legend(
+                ncol=min(4, len(ct.columns)),
+                bbox_to_anchor=(0.5, -0.15),
+                loc="upper center",
+                frameon=True,
+                fontsize=8,
+            )
+            fig.subplots_adjust(bottom=0.2)
+            fig.tight_layout()
+            
+            # Bouton de téléchargement PNG
+            png_bytes = _fig_to_png_bytes(fig)
+            if png_bytes is not None:
+                socio_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in str(socio_label))
+                out_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in str(outcome_display))
+                st.download_button(
+                    "📥 Télécharger PNG",
+                    data=png_bytes,
+                    file_name=f"{socio_name}_x_{out_name}.png",
+                    mime="image/png",
+                    key=f"dl_png_socio_socio_{socio_name}_{out_name}",
+                )
+            
+            st.pyplot(fig, use_container_width=True)
+            plt.close(fig)
+            
+            # Afficher le tableau avec les pourcentages
+            ct_display = ct.copy()
+            ct_display["Total"] = ct_display.sum(axis=1)
+            
+            # Formater avec 1 décimale
+            ct_display = ct_display.round(1)
+            
+            st.dataframe(ct_display, use_container_width=True)
+            st.stop()        
+        
+        elif var1_info["type"] == "outcome" and var2_info["type"] == "outcome":
+            st.warning("⚠️ Vous avez sélectionné deux variables RPS. Le croisement montrera la répartition de la seconde selon la première.")
+            
+            # Récupérer les colonnes correctes
+            col1 = var1_info["col"]  # C'est déjà le nom de la colonne dans domain_cat_df
+            col2 = var2_info["col"]  # C'est déjà le nom de la colonne dans domain_cat_df
+            
+            # Vérifier que les colonnes existent dans domain_cat_df
+            if col1 not in domain_cat_df.columns or col2 not in domain_cat_df.columns:
+                st.warning(f"Colonnes non trouvées: {col1} ou {col2}")
+                st.stop()
+            
+            # Pour deux outcomes, on utilise directement les catégories
+            # Pas besoin de recatégoriser car domain_cat_df contient déjà les catégories
+            temp_df = pd.DataFrame({
+                "cat": domain_cat_df[col1],  # Variable X (catégorisée)
+                "outcome": domain_cat_df[col2]  # Variable Y (catégorisée)
+            }).dropna()
+            
+            if temp_df.empty:
+                st.warning("Pas de données exploitables pour ce croisement.")
+                st.stop()
+            
+            # Créer le tableau croisé
+            ct = pd.crosstab(temp_df["cat"], temp_df["outcome"], normalize="index").mul(100)
+            ct = ct.reindex(columns=ORDER_LEVELS, fill_value=0)
+            ct["Total"] = ct.sum(axis=1)
+            
+            # Créer le graphique
+            fig_biv = _plot_bivariate_stacked(
+                ct,
+                f"Répartition - {var2} selon {var1}",
+                subdomain_label=var2,
+            )
+            
+            # Bouton de téléchargement
+            png_bytes = _fig_to_png_bytes(fig_biv)
+            if png_bytes is not None:
+                out_name1 = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in var1)
+                out_name2 = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in var2)
+                st.download_button(
+                    "📥 Télécharger PNG",
+                    data=png_bytes,
+                    file_name=f"{out_name1}_x_{out_name2}.png",
+                    mime="image/png",
+                    key=f"dl_png_outcome_outcome_{out_name1}_{out_name2}",
+                )
+            
+            st.pyplot(fig_biv, use_container_width=True)
+            plt.close(fig_biv)
+            
+            # Afficher le tableau
+            st.dataframe(
+                _style_bivariate_table(ct, subdomain_label=var2),
+                use_container_width=True,
+            )
+            st.stop()
+        # Cas standard : socio X outcome
         ct = _bivariate_table(socio_df[socio_col], domain_cat_df[outcome_col])
         if ct is None:
-            st.warning("Pas de donnees exploitables pour ce croisement.")
+            st.warning("Pas de données exploitables pour ce croisement.")
         else:
             fig_biv = _plot_bivariate_stacked(
                 ct,
-                f"Répartition des employés - {socio_label} selon {domain_label_map.get(outcome_col, outcome_col)}",
-                subdomain_label=domain_label_map.get(outcome_col, outcome_col),
+                f"Répartition des employés - {socio_label} selon {outcome_display}",
+                subdomain_label=outcome_display,
             )
             png_bytes = _fig_to_png_bytes(fig_biv)
             if png_bytes is not None:
                 socio_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in str(socio_label))
-                out_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in str(domain_label_map.get(outcome_col, outcome_col)))
+                out_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in str(outcome_display))
                 st.download_button(
                     "PNG",
                     data=png_bytes,
@@ -2004,6 +2200,6 @@ with tab_croissement:
             st.pyplot(fig_biv, use_container_width=True)
             plt.close(fig_biv)
             st.dataframe(
-                _style_bivariate_table(ct, subdomain_label=domain_label_map.get(outcome_col, outcome_col)),
+                _style_bivariate_table(ct, subdomain_label=outcome_display),
                 use_container_width=True,
             )
