@@ -81,9 +81,9 @@ st.markdown(
     """
     <style>
     :root{
-      --ink:#24395F; --muted:#6B7EA6; --blue:#4293D8; --pink:#E35DA8;
-      --orange:#E98A2F; --teal:#22B8B2; --green:#39B56A; --danger:#E25555;
-      --card:#FFFFFF; --line:#DCE7F7; --shadow:0 12px 28px rgba(36,57,95,0.10);
+    --ink:#24395F; --muted:#6B7EA6; --blue:#4293D8; --pink:#E35DA8;
+    --orange:#E98A2F; --teal:#22B8B2; --green:#39B56A; --danger:#E25555;
+    --card:#FFFFFF; --line:#DCE7F7; --shadow:0 12px 28px rgba(36,57,95,0.10);
     }
     html,body,[class*="css"]{font-family:Inter,sans-serif!important;color:#0F172A}
     .main{background:#f1f4f9!important}
@@ -249,11 +249,11 @@ def preparer_base(df_in: pd.DataFrame) -> pd.DataFrame:
         df["Age"] = pd.to_numeric(df["Age"], errors="coerce")
         df["Tranche_Age"] = np.select(
             [df["Age"] <= 20,
-             (df["Age"] >= 21) & (df["Age"] < 30),
-             (df["Age"] >= 30) & (df["Age"] < 40),
-             (df["Age"] >= 40) & (df["Age"] < 50),
-             (df["Age"] >= 50) & (df["Age"] < 60),
-             df["Age"] >= 60],
+            (df["Age"] >= 21) & (df["Age"] < 30),
+            (df["Age"] >= 30) & (df["Age"] < 40),
+            (df["Age"] >= 40) & (df["Age"] < 50),
+            (df["Age"] >= 50) & (df["Age"] < 60),
+            df["Age"] >= 60],
             ["20 ans et moins","21-29 ans","30-39 ans","40-49 ans","50-59 ans","60 ans et plus"],
             default="",
         )
@@ -281,15 +281,15 @@ def preparer_base(df_in: pd.DataFrame) -> pd.DataFrame:
         df["Anciennete"] = pd.to_numeric(df["Anciennete"], errors="coerce")
         df["anciennete_cat"] = np.select(
             [df["Anciennete"] <= 2, df["Anciennete"] <= 5,
-             df["Anciennete"] <= 10, df["Anciennete"] <= 20],
+            df["Anciennete"] <= 10, df["Anciennete"] <= 20],
             ["0-2 ans","3-5 ans","6-10 ans","11-20 ans"],
             default="20 ans et plus",
         )
 
     df["niveau"] = np.select(
         [df["score_stress"] <= 13,
-         (df["score_stress"] > 13) & (df["score_stress"] <= 26),
-         (df["score_stress"] > 26) & (df["score_stress"] <= 40)],
+        (df["score_stress"] > 13) & (df["score_stress"] <= 26),
+        (df["score_stress"] > 26) & (df["score_stress"] <= 40)],
         ["Niveau de stress faible","Niveau de stress modere","Niveau de stress eleve"],
         default="",
     )
@@ -408,19 +408,19 @@ def pictogramme_card(value, title, mode="stress", scale_max=100.0):
 
     return f"""
     <div class="pcard">
-      <div class="pcard-head"></div>
-      <div class="pcard-body">
+    <div class="pcard-head"></div>
+    <div class="pcard-body">
         <div class="pcard-title">{title}</div>
         <div class="pcard-row">
-          <div class="pcard-grid">{''.join(icons)}</div>
-          <div class="pcard-right">
+        <div class="pcard-grid">{''.join(icons)}</div>
+        <div class="pcard-right">
             <div class="pcard-value">{label_value}</div>
             <div class="pcard-caption">{unit_lbl}</div>
-          </div>
+        </div>
         </div>
         <div class="pcard-alert" style="color:{color};">{title_msg}</div>
         <div class="pcard-msg">{msg}</div>
-      </div>
+    </div>
     </div>
     """
 
@@ -554,8 +554,8 @@ if df is None:
     st.markdown(
         """
         <div class="upload-note">
-          <h3>Import requis pour démarrer</h3>
-          <p>Chargez votre fichier CSV/Excel dans la barre latérale pour activer le tableau de bord.</p>
+        <h3>Import requis pour démarrer</h3>
+        <p>Chargez votre fichier CSV/Excel dans la barre latérale pour activer le tableau de bord.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -575,8 +575,8 @@ if df is None:
 st.markdown(
     """
     <div class="hero">
-      <h1>Audit de la Charge Mentale et du Stress des Employés — Tableau de Bord</h1>
-      <p>Pilotage psychologique et analyses statistiques.</p>
+    <h1>Audit de la Charge Mentale et du Stress des Employés — Tableau de Bord</h1>
+    <p>Pilotage psychologique et analyses statistiques.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -589,8 +589,8 @@ with tab_pilotage:
     st.markdown(
         """
         <div class="filters-panel">
-          <p class="filters-title">Filtres d'analyse</p>
-          <p class="filters-sub">Affinez rapidement le segment observé pour une lecture psychologique précise.</p>
+        <p class="filters-title">Filtres d'analyse</p>
+        <p class="filters-sub">Affinez rapidement le segment observé pour une lecture psychologique précise.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -633,12 +633,12 @@ with tab_pilotage:
         st.markdown(
             f"""
             <div class="section-card">
-              <h4 style="margin:0 0 10px 0;">Distribution des niveaux de stress</h4>
-              <div class="stress-grid">
+            <h4 style="margin:0 0 10px 0;">Distribution des niveaux de stress</h4>
+            <div class="stress-grid">
                 <div class="stress-box"><div class="v" style="color:#4fd2be;">~{pct_f:.0f}%</div><div class="l">Faible</div></div>
                 <div class="stress-box"><div class="v" style="color:#e8c278;">~{pct_m:.0f}%</div><div class="l">Modéré</div></div>
                 <div class="stress-box"><div class="v" style="color:#ff808f;">~{pct_h:.0f}%</div><div class="l">Élevé</div></div>
-              </div>
+            </div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -765,7 +765,7 @@ with tab_analyse:
         l_uni, r_uni = st.columns([1.7, 1.1], gap="large")
         with l_uni:
             fig_uni = px.bar(freq, x="Pourcentage", y="Tranche_Age", orientation="h",
-                             text="Pourcentage", title="Distribution des tranches d'âge")
+                            text="Pourcentage", title="Distribution des tranches d'âge")
             fig_uni.update_traces(texttemplate="%{text:.1f}%", textposition="inside")
             style_bar_figure(fig_uni, height=520)
             fig_uni.update_layout(showlegend=False, xaxis_title="Pourcentage (%)", yaxis_title="")
@@ -791,8 +791,8 @@ with tab_analyse:
         freq.columns = ["Modalite","Effectif"]
         freq["Pourcentage"] = (freq["Effectif"] / max(len(series_uni), 1) * 100).round(2)
         fig_uni = px.bar(freq, x="Modalite", y="Effectif", text="Pourcentage",
-                         title=f"Distribution — {var_uni_label}", color="Modalite",
-                         color_discrete_sequence=CHART_SEQUENCE)
+                        title=f"Distribution — {var_uni_label}", color="Modalite",
+                        color_discrete_sequence=CHART_SEQUENCE)
         fig_uni.update_traces(texttemplate="%{text:.1f}%")
         style_bar_figure(fig_uni, height=420)
         fig_uni.update_layout(showlegend=False)
@@ -828,7 +828,7 @@ with tab_analyse:
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
             grouped = ct_pct.reset_index().melt(id_vars="X_cl", var_name="Y_cl", value_name="Pourcentage")
             fig_bi  = px.bar(grouped, x="X_cl", y="Pourcentage", color="Y_cl", barmode="group",
-                             title=f"Classes de {var_x_label} × classes de {var_y_label}")
+                            title=f"Classes de {var_x_label} × classes de {var_y_label}")
             fig_bi.update_traces(texttemplate="%{y:.1f}%", textposition="auto", cliponaxis=False)
             style_bar_figure(fig_bi, height=440)
             fig_bi.update_yaxes(title="Pourcentage (%)", range=[0, 100])
@@ -844,7 +844,7 @@ with tab_analyse:
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
             grouped = ct_pct.reset_index().melt(id_vars="X_cl", var_name=var_y, value_name="Pourcentage")
             fig_bar = px.bar(grouped, x="X_cl", y="Pourcentage", color=var_y, barmode="group",
-                             title=f"Classes de {var_x_label} × {var_y_label}")
+                            title=f"Classes de {var_x_label} × {var_y_label}")
             fig_bar.update_traces(texttemplate="%{y:.1f}%", textposition="auto", cliponaxis=False)
             style_bar_figure(fig_bar, height=420)
             fig_bar.update_yaxes(title="Pourcentage (%)", range=[0, 100])
@@ -860,7 +860,7 @@ with tab_analyse:
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
             grouped = ct_pct.reset_index().melt(id_vars=var_x, var_name="Y_cl", value_name="Pourcentage")
             fig_bar = px.bar(grouped, x=var_x, y="Pourcentage", color="Y_cl", barmode="group",
-                             title=f"{var_x_label} × classes de {var_y_label}")
+                            title=f"{var_x_label} × classes de {var_y_label}")
             fig_bar.update_traces(texttemplate="%{y:.1f}%", textposition="auto", cliponaxis=False)
             style_bar_figure(fig_bar, height=420)
             fig_bar.update_yaxes(title="Pourcentage (%)", range=[0, 100])
@@ -872,7 +872,7 @@ with tab_analyse:
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
             grouped = ct_pct.reset_index().melt(id_vars=var_x, var_name=var_y, value_name="Pourcentage")
             fig_group = px.bar(grouped, x=var_x, y="Pourcentage", color=var_y, barmode="group",
-                               title=f"{var_x_label} × {var_y_label}")
+                            title=f"{var_x_label} × {var_y_label}")
             fig_group.update_traces(texttemplate="%{y:.1f}%", textposition="auto", cliponaxis=False)
             style_bar_figure(fig_group, height=420)
             fig_group.update_yaxes(title="Pourcentage (%)", range=[0, 100])
