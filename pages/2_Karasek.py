@@ -1414,7 +1414,8 @@ def render_tab2(df, lang):
 def main():
     inject_css()
     inject_animation_js()
-        # ── Topbar YODAN ──────────────────────────────────────────
+    
+    # ── Topbar YODAN ──────────────────────────────────────────
     st.markdown(
         '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">'
         '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">',
@@ -1448,20 +1449,61 @@ def main():
     render_header(lang)
     lang = st.session_state["lang"]
 
-    default_path = "data/karasek_wave_ci_clean.csv"
-    uploaded = st.file_uploader(T[lang]["upload_csv"], type=["csv"], key="uploaded_csv")
-    if uploaded is not None:
-        df_raw = load_uploaded_data(uploaded)
-        src_label = uploaded.name
+    # MODIFICATION: Supprimer le chargement automatique du fichier par défaut
+    # et n'afficher que l'uploader
+    
+    st.markdown("## 📤 Import des données")
+    st.markdown("Veuillez importer un fichier **CSV** ou **Excel** pour commencer l'analyse.")
+    
+    # Uploader avec support des fichiers CSV et Excel
+    uploaded = st.file_uploader(
+        T[lang]["upload_csv"], 
+        type=["csv", "xlsx", "xls"], 
+        key="uploaded_csv",
+        help="Formats acceptés : CSV, Excel (.xlsx, .xls)"
+    )
+    
+    # Si aucun fichier n'est uploadé, afficher un message d'attente
+    if uploaded is None:
+        st.info("👆 En attente d'un fichier... L'analyse démarrera automatiquement après l'import.")
+        
+        # Afficher un exemple de structure attendue
+    
+        st.stop()  # Arrêter l'exécution ici tant qu'aucun fichier n'est importé
+    
+    # Si un fichier est uploadé, charger les données
     else:
-        df_raw = load_data(default_path)
-        src_label = default_path
+        # Déterminer le type de fichier et charger en conséquence
+        file_extension = uploaded.name.split('.')[-1].lower()
+        
+        try:
+            if file_extension == 'csv':
+                df_raw = load_uploaded_data(uploaded)
+            elif file_extension in ['xlsx', 'xls']:
+                # Charger un fichier Excel
+                df_raw = pd.read_excel(uploaded)
+            else:
+                st.error(f"Format de fichier non supporté : {file_extension}")
+                st.stop()
+                
+            src_label = uploaded.name
+            
+            # Afficher un aperçu des données
+            with st.expander("🔍 Aperçu des données importées", expanded=False):
+                st.dataframe(df_raw.head(10))
+                st.caption(f"Dimensions : {df_raw.shape[0]} lignes × {df_raw.shape[1]} colonnes")
+                
+        except Exception as e:
+            st.error(f"Erreur lors du chargement du fichier : {str(e)}")
+            st.stop()
 
     st.caption(f"{T[lang]['upload_active']}: {src_label}")
+    
     if df_raw.empty:
-        st.error("CSV introuvable ou illisible.")
+        st.error("Le fichier est vide ou illisible.")
         st.stop()
 
+    # Suite du code inchangée...
     sel_dirs, sel_csps, sel_genres, sel_age_range = render_top_filters(df_raw, lang)
     df = apply_filters(df_raw, sel_dirs, sel_csps, sel_genres, sel_age_range)
 
@@ -1485,6 +1527,6 @@ def main():
     tab1, tab2 = st.tabs([t["tab1"], t["tab2"]])
     with tab1: render_tab1(df, lang)
     with tab2: render_tab2(df, lang)
-
+    
 if __name__ == "__main__":
     main()
