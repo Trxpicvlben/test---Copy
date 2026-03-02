@@ -613,8 +613,9 @@ with tab_pilotage:
     age_m = float(df_v["Age"].median()) if ("Age" in df_v.columns and n > 0) else 0.0
     ph    = float((df_v["Sexe"].astype(str).str.lower() == "homme").mean() * 100) if ("Sexe" in df_v.columns and n > 0) else 0.0
     pf    = float((df_v["Sexe"].astype(str).str.lower() == "femme").mean() * 100) if ("Sexe" in df_v.columns and n > 0) else 0.0
-    icm10 = float((df_v["score_stress"].mean() / SCORE_STRESS_MAX) * 10) if n > 0 else 0.0
-    tp    = float(df_v["TP_i"].mean()) if n > 0 else 0.0
+    icm_n = float(df_v["ICM_i"].median()) if ("ICM_i" in df_v.columns and n > 0) else 0.0
+    icm10 = icm_n / 10.0
+    tp    = float(df_v["TP_i"].median()) if ("TP_i" in df_v.columns and n > 0) else 0.0
 
     k1, k2, k3, k4 = st.columns(4, gap="large")
     k1.markdown(f'<div class="kpi-strip"><div class="kpi-accent" style="background:#ff8f9a;"></div><div class="kpi-icon-wrap"><span class="kpi-icon" style="background:#ff8f9a;">🏢</span></div><div class="kpi-body"><div class="klabel">Employés</div><div class="kval">{n}</div></div></div>', unsafe_allow_html=True)
