@@ -289,7 +289,7 @@ with b5:
         st.switch_page("pages/4_Charge_Mentale.py")
 with b6:
     if st.button("QVT Qualité",   use_container_width=True, key="qvt"):
-        st.info("🚧 En construction")
+        st.switch_page("pages/7_QVT_Qualite.py")
 with b7:
     if st.button("Toile SST",     use_container_width=True, key="sst"):
         st.switch_page("pages/3_SST.py")
