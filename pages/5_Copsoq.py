@@ -162,6 +162,28 @@ def _find_by_patterns(columns: list, patterns: list) -> str | None:
     return None
 
 
+def _find_age_numeric_col(df: "pd.DataFrame") -> "str | None":
+    """
+    Cherche la colonne Age numérique en excluant toute colonne contenant 'tranche'.
+    Retourne le nom de la colonne si elle contient des valeurs numériques, sinon None.
+    Gère aussi le cas où work_df[col] retourne un DataFrame (colonnes en doublon).
+    """
+    for col in df.columns:
+        col_norm = _pp_normalize_text(col)
+        # Exclure les colonnes tranche d'age, tranche anciennete, etc.
+        if "tranche" in col_norm:
+            continue
+        if re.search(r"\bage\b", col_norm):
+            series = df[col]
+            # Sécurité : si doublon de colonnes, prendre la première
+            if isinstance(series, pd.DataFrame):
+                series = series.iloc[:, 0]
+            vals = pd.to_numeric(series, errors="coerce")
+            if not vals.dropna().empty:
+                return col
+    return None
+
+
 def _find_closest_column(columns: list, target: str, min_score: float = 0.6) -> str | None:
     if not columns:
         return None
@@ -183,7 +205,7 @@ def add_demographic_derived_columns(df: pd.DataFrame) -> tuple:
     ops: list = []
     cols = list(work_df.columns)
 
-    age_col = _find_by_patterns(cols, [r"\bage\b"])
+    age_col = _find_age_numeric_col(work_df)
     tranche_age_col = _find_by_patterns(cols, [r"tranche.*age"])
     if age_col is not None and "Tranche d'age" not in work_df.columns and tranche_age_col is None:
         age_vals = pd.to_numeric(work_df[age_col], errors="coerce")
@@ -246,6 +268,226 @@ def add_demographic_derived_columns(df: pd.DataFrame) -> tuple:
         ops.append("IMC/Categorie IMC: colonnes poids/taille non trouvees")
 
     return work_df, ops
+
+
+def clean_common_variables(
+    df: pd.DataFrame,
+    drop_first_col: bool = False,
+    drop_indices: list | None = None,
+    fill_marital: bool = True,
+    missing_threshold: float = 0.5,
+) -> tuple:
+    """
+    Nettoyage automatique des variables communes d'un DataFrame COPSOQ.
+    Retourne (df_nettoyé, cleaning_log).
+    """
+    cleaned_df = df.copy()
+    ops = []
+    removed_columns_manual: list = []
+    removed_columns_missing: list = []
+
+    # --- Suppression des colonnes d'identification personnelle (PII) ---
+    _PII_PATTERNS = [
+        r"\bnom\b",
+        r"\bprenom",
+        r"\be[- ]?mail\b",
+        r"\bmail\b",
+        r"\bcourriel\b",
+        r"\btelephone\b",
+        r"\btel\b",
+        r"\bphone\b",
+        r"\bcommentaire",
+        r"\bobservation",
+        r"\bremarque",
+        r"\bnumero\b",
+        r"\bidentifiant\b",
+        r"\bid\b",
+    ]
+    # Patterns vérifiés sur le nom brut (avant normalisation) — ex: "#", "Unnamed: 0"
+    _PII_RAW_PATTERNS = [
+        r"^#\s*$",
+        r"^unnamed",
+    ]
+    _pii_dropped: list = []
+    for col in list(cleaned_df.columns):
+        col_raw = str(col).strip()
+        col_norm = _pp_normalize_text(col)
+        matched = any(re.search(pat, col_norm) for pat in _PII_PATTERNS)
+        if not matched:
+            matched = any(re.search(pat, col_raw, re.IGNORECASE) for pat in _PII_RAW_PATTERNS)
+        if matched:
+            cleaned_df = cleaned_df.drop(columns=[col])
+            _pii_dropped.append(str(col))
+    if _pii_dropped:
+        ops.append(
+            f"Colonnes PII supprimees ({len(_pii_dropped)}): "
+            + ", ".join(_pii_dropped)
+        )
+
+    if drop_first_col and cleaned_df.shape[1] > 1:
+        first_col = cleaned_df.columns[0]
+        cleaned_df = cleaned_df.iloc[:, 1:]
+        removed_columns_manual.append(str(first_col))
+        ops.append(f"Premiere colonne supprimee: {first_col}")
+
+    if drop_indices:
+        valid_drop = [i for i in drop_indices if i in cleaned_df.index]
+        if valid_drop:
+            cleaned_df = cleaned_df.drop(valid_drop)
+            ops.append(f"Lignes supprimees: {valid_drop}")
+
+    if fill_marital:
+        marital_col = _find_by_patterns(list(cleaned_df.columns), [r"situation", r"mari"])
+        if marital_col is not None:
+            cleaned_df[marital_col] = cleaned_df[marital_col].fillna("Non renseigne")
+            ops.append(f"Situation matrimoniale completee: {marital_col}")
+
+    missing_ratio = cleaned_df.isna().mean()
+    cols_to_drop = missing_ratio[missing_ratio > missing_threshold].index.tolist()
+    if cols_to_drop:
+        cleaned_df = cleaned_df.drop(columns=cols_to_drop)
+    removed_columns_missing = [str(c) for c in cols_to_drop]
+    if cols_to_drop:
+        ops.append(
+            "Colonnes > "
+            + f"{missing_threshold * 100:.0f}% manquants supprimees: "
+            + ", ".join(str(c) for c in cols_to_drop)
+        )
+
+    # --- Tranche d'age ---
+    _TRANCHE_AGE_CANONICAL = "Tranche d'age"
+    _TRANCHE_AGE_NORM_VARIANTS = {"tranche d age", "tranche age", "tranche d ages"}
+
+    age_col = _find_age_numeric_col(cleaned_df)
+
+    # Collecter TOUTES les colonnes qui sont des variantes de tranche d'age
+    _tranche_age_all = [
+        _col for _col in cleaned_df.columns
+        if _pp_normalize_text(str(_col)) in _TRANCHE_AGE_NORM_VARIANTS
+    ]
+
+    if age_col is not None and not _tranche_age_all:
+        # Aucune tranche existante : on la crée depuis Age numérique
+        age_vals = pd.to_numeric(cleaned_df[age_col], errors="coerce")
+        cleaned_df[_TRANCHE_AGE_CANONICAL] = pd.cut(
+            age_vals,
+            bins=[0, 20, 30, 40, 50, 60, float("inf")],
+            labels=["-20", "20-30", "31-40", "41-50", "51-60", "60+"],
+            include_lowest=True,
+        )
+        ops.append(f"Tranche d'age creee depuis: {age_col}")
+    elif _tranche_age_all:
+        # Garder uniquement la première variante trouvée, supprimer les autres
+        _keep = _tranche_age_all[0]
+        _to_drop_tranche = [c for c in _tranche_age_all[1:]]
+        if _to_drop_tranche:
+            cleaned_df = cleaned_df.drop(columns=_to_drop_tranche)
+            ops.append(f"Doublons Tranche d'age supprimes: {_to_drop_tranche}")
+        # Renommer en canonique si nécessaire
+        if _keep != _TRANCHE_AGE_CANONICAL:
+            cleaned_df = cleaned_df.rename(columns={_keep: _TRANCHE_AGE_CANONICAL})
+            ops.append(f"Tranche d'age renommee depuis: {_keep}")
+        else:
+            ops.append("Tranche d'age existante conservee")
+    else:
+        ops.append("Tranche d'age: colonne Age numerique et tranche d'age non trouvees")
+
+    # --- Tranche ancienneté ---
+    _TRANCHE_ANC_CANONICAL = "Tranche anciennete"
+
+    anciennete_col = _find_by_patterns(list(cleaned_df.columns), [r"anciennete", r"anciennet"])
+    # Collecter TOUTES les variantes de tranche anciennete
+    _tranche_anc_all = [
+        _col for _col in cleaned_df.columns
+        if _pp_normalize_text(str(_col)) in {"tranche anciennete"}
+    ]
+    _tranche_anc_existing = _tranche_anc_all[0] if _tranche_anc_all else None
+    # Supprimer les doublons éventuels
+    if len(_tranche_anc_all) > 1:
+        cleaned_df = cleaned_df.drop(columns=_tranche_anc_all[1:])
+        ops.append(f"Doublons Tranche anciennete supprimes: {_tranche_anc_all[1:]}")
+
+    if _tranche_anc_existing is not None:
+        if _tranche_anc_existing != _TRANCHE_ANC_CANONICAL:
+            cleaned_df = cleaned_df.rename(columns={_tranche_anc_existing: _TRANCHE_ANC_CANONICAL})
+            ops.append(f"Tranche anciennete renommee depuis: {_tranche_anc_existing}")
+        else:
+            ops.append("Tranche anciennete existante conservee")
+    elif anciennete_col is not None:
+        anc_vals = pd.to_numeric(cleaned_df[anciennete_col], errors="coerce")
+        cleaned_df[_TRANCHE_ANC_CANONICAL] = pd.cut(
+            anc_vals,
+            bins=[0, 2, 5, 10, 20, float("inf")],
+            labels=["0-2", "3-5", "6-10", "11-20", "21+"],
+            include_lowest=True,
+        )
+        ops.append(f"Tranche anciennete creee depuis: {anciennete_col}")
+    else:
+        ops.append("Tranche anciennete: colonne anciennete non trouvee")
+
+    # --- IMC ---
+    imc_col = _find_by_patterns(list(cleaned_df.columns), [r"\bimc\b"])
+    if imc_col is not None:
+        cleaned_df = cleaned_df.drop(columns=[imc_col])
+        removed_columns_manual.append(str(imc_col))
+        ops.append(f"IMC existant supprime: {imc_col}")
+
+    poids_col = _find_by_patterns(list(cleaned_df.columns), [r"\bpoids\b"])
+    taille_col = _find_by_patterns(list(cleaned_df.columns), [r"\btaille\b"])
+    if poids_col is not None and taille_col is not None:
+        poids_vals = pd.to_numeric(cleaned_df[poids_col], errors="coerce")
+        taille_vals = pd.to_numeric(cleaned_df[taille_col], errors="coerce")
+        taille_positive = taille_vals[taille_vals > 0]
+        if not taille_positive.empty and float(taille_positive.median()) > 3:
+            taille_m = taille_vals / 100.0
+        else:
+            taille_m = taille_vals
+        imc_vals = poids_vals / (taille_m ** 2)
+        imc_vals = imc_vals.replace([float("inf"), float("-inf")], np.nan)
+        cleaned_df["IMC"] = imc_vals
+        cleaned_df["Categorie IMC"] = pd.cut(
+            cleaned_df["IMC"],
+            bins=[0, 18.5, 25, 30, 200],
+            labels=["Maigreur", "Normal", "Surpoids", "Obesite"],
+            include_lowest=True,
+        )
+        ops.append(f"IMC/Categorie IMC calcules depuis: poids={poids_col}, taille={taille_col}")
+
+    # --- Remplissage "Non renseigne" pour toutes les colonnes catégorielles/texte restantes ---
+    # On exclut les colonnes numériques pures (Age, IMC, Q1-Q46, etc.)
+    _qx_pattern = re.compile(r"^Q\d+$", re.IGNORECASE)
+    _numeric_cols_to_skip = set()
+    for col in cleaned_df.columns:
+        if _qx_pattern.match(str(col)):
+            _numeric_cols_to_skip.add(col)
+        elif pd.api.types.is_numeric_dtype(cleaned_df[col]):
+            _numeric_cols_to_skip.add(col)
+
+    _categorical_filled: list = []
+    for col in cleaned_df.columns:
+        if col in _numeric_cols_to_skip:
+            continue
+        # Forcer un scalaire Python natif pour éviter ValueError sur CategoricalDtype
+        try:
+            _has_na = cleaned_df[col].isna().values.any()
+        except Exception:
+            _has_na = cleaned_df[col].isnull().sum() > 0
+        if _has_na:
+            if hasattr(cleaned_df[col], "cat"):
+                if "Non renseigne" not in cleaned_df[col].cat.categories:
+                    cleaned_df[col] = cleaned_df[col].cat.add_categories("Non renseigne")
+            cleaned_df[col] = cleaned_df[col].fillna("Non renseigne")
+            _categorical_filled.append(str(col))
+
+    if _categorical_filled:
+        ops.append(
+            f"Remplissage 'Non renseigne' ({len(_categorical_filled)} colonne(s)): "
+            + ", ".join(_categorical_filled)
+        )
+
+    cleaning_log = "Nettoyage COPSOQ applique:\n- " + "\n- ".join(ops) if ops else "Aucune operation appliquee."
+    cleaned_df.attrs["cleaning_log"] = cleaning_log
+    return cleaned_df, cleaning_log
 
 
 def build_df_qx(df: pd.DataFrame, threshold: float = 0.65) -> pd.DataFrame:
@@ -370,9 +612,12 @@ def build_general_indicators(df: pd.DataFrame) -> dict:
     nb_hommes = int((genre == "homme").sum())
     nb_femmes = int((genre == "femme").sum())
     # Calculer la médiane de l'âge si la colonne d'âge existe
-    age_col = _find_by_patterns(cols, [r"\bage\b"])
+    age_col = _find_age_numeric_col(work_df)
     if age_col is not None:
-        age_vals = pd.to_numeric(work_df[age_col], errors="coerce")
+        series_age = work_df[age_col]
+        if isinstance(series_age, pd.DataFrame):
+            series_age = series_age.iloc[:, 0]
+        age_vals = pd.to_numeric(series_age, errors="coerce")
         age_median = age_vals.median(skipna=True)
         if not pd.isna(age_median):
             age_moyen = age_median  # Renommez cette variable en age_median pour plus de clarté
@@ -1277,6 +1522,16 @@ with st.spinner("Chargement et traitement des données…"):
     df_raw = load_data_from_bytes(_file_bytes, _file_name)
     df_scores_raw = load_data_scores_from_bytes(_file_bytes, _file_name)
 
+# --- Nettoyage automatique des variables communes ---
+df_raw, cleaning_log = clean_common_variables(df_raw)
+
+# --- Compter les questions COPSOQ détectées ---
+_matched_q_count = sum(1 for q in QUESTION_TEXT_MAP if q in load_data_qx_from_bytes(_file_bytes, _file_name).columns)
+
+with st.expander("Journal de nettoyage automatique", expanded=False):
+    st.text(cleaning_log)
+    st.write(f"Questions COPSOQ detectees automatiquement: {_matched_q_count}/46")
+
 tab_generales, tab_analyse_simple, tab_domaines_rps, tab_croissement = st.tabs(
     ["Générale", "Analyse simple", "Domaines", "Croissement"]
 )
@@ -1294,12 +1549,21 @@ with tab_generales:
 
     kpi = build_general_indicators(df)
     age_moyen = kpi.get("age_moyen")
-    if isinstance(age_moyen, Real):
+    # Déterminer si l'Age (numérique) est disponible ou si on utilise Tranche d'age
+    _age_col_present = _find_age_numeric_col(df)
+    _age_numeric_ok = False
+    if _age_col_present is not None:
+        _age_vals_check = pd.to_numeric(df[_age_col_present], errors="coerce")
+        _age_numeric_ok = not _age_vals_check.dropna().empty
+
+    if _age_numeric_ok and isinstance(age_moyen, Real):
         age_moyen_display = f"{age_moyen:.0f} ans"
     elif age_moyen in (None, "", "N/A"):
         age_moyen_display = "N/A"
     else:
-        age_moyen_display = str(age_moyen)
+        # Fallback sur mode de Tranche d'age — afficher avec "ans" pour cohérence visuelle
+        age_moyen_display = f"{age_moyen}"
+    age_kpi_label = "Age Moyen"
 
     top_situation = "N/A"
     if not kpi["situation_matrimoniale"].empty:
@@ -1333,17 +1597,17 @@ with tab_generales:
             f'<img class="card-footer-image" src="data:image/png;base64,{femme_img_b64}" alt="femme" />',
         ),
         (
-            "Age Moyen",
+            age_kpi_label,
             age_moyen_display,
             f'<img class="card-footer-image" src="data:image/png;base64,{age_img_b64}" alt="age" />',
         ),
         (
-            "Taux d'alcoolique",
+            "Taux de consomamation d'alcool",
             f'<span class="rps-score-value" data-rps-score="true" data-rps-target="{kpi["taux_alcool"]}" data-rps-decimals="1" data-rps-suffix="%" data-rps-final="{kpi["taux_alcool"]:.1f}%">0.0%</span>',
             f'<img class="card-footer-image" src="data:image/png;base64,{alcool_img_b64}" alt="alcool" />',
         ),
         (
-            "Taux fumeur",
+            "Taux de consomamation de tabac",
             f'<span class="rps-score-value" data-rps-score="true" data-rps-target="{kpi["taux_fumeur"]}" data-rps-decimals="1" data-rps-suffix="%" data-rps-final="{kpi["taux_fumeur"]:.1f}%">0.0%</span>',
             f'<img class="card-footer-image" src="data:image/png;base64,{fume_img_b64}" alt="fumeur" />',
         ),
