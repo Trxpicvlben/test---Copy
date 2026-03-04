@@ -2142,6 +2142,7 @@ with radar_col2:
 
     else:
         st.info("Aucune donnée disponible pour ce domaine.")
+
 with tab_analyse_simple:
     st.subheader("Statistiques univariees")
     analyse_df = filtered_df.copy() if "filtered_df" in locals() and not filtered_df.empty else df.copy()
@@ -2162,6 +2163,13 @@ with tab_analyse_simple:
                     recomputed_five = True
 
         stats, freq = _get_univariate_stats(series_for_univariate, len(analyse_df), selected_col)
+        
+        # Ajouter la colonne Effectif au tableau des fréquences
+        if not freq.empty:
+            # Calculer les effectifs réels
+            effectifs = series_for_univariate.value_counts(dropna=False).reindex(freq['Categorie'])
+            freq['Effectif'] = effectifs.values
+        
         left_col, right_col = st.columns([1, 1.4])
 
         with left_col:
@@ -2174,25 +2182,105 @@ with tab_analyse_simple:
             st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
             with st.container(border=True):
                 st.markdown("**Frequences detaillees**")
-                st.dataframe(_format_df_for_display(freq), use_container_width=True, height=320)
+                # Réorganiser les colonnes pour avoir Effectif avant Frequence
+                if 'Effectif' in freq.columns:
+                    freq_display = freq[['Categorie', 'Effectif', 'Frequence (%)']].copy()
+                else:
+                    freq_display = freq
+                st.dataframe(_format_df_for_display(freq_display), use_container_width=True, height=320)
 
         with right_col:
             temp_df = analyse_df.copy()
             temp_df[selected_col] = series_for_univariate
-            fig_uni = _build_univariate_figure(temp_df, selected_col)
-            png_bytes = _fig_to_png_bytes(fig_uni)
+            
+            # Variables nécessitant un affichage spécifique (Poste, Direction, etc.)
+            special_categorical_vars = ["Poste de travail", "Direction", "Departement", "Service", "Fonction"]
+            
+            if selected_col in special_categorical_vars:
+                # Import de plotly express
+                import plotly.express as px
+                
+                # Compter les occurrences
+                counts = series_for_univariate.dropna().value_counts().sort_values(ascending=False)
+                total = counts.sum()
+                
+                # Calculer les pourcentages
+                percentages = (counts / total * 100).round(1)
+                
+                # Créer un DataFrame pour Plotly
+                plot_df = pd.DataFrame({
+                    'Modalité': counts.index,
+                    'Effectif': counts.values,
+                    'Pourcentage': percentages.values,
+                })
+                
+                # Créer le graphique à barres avec Plotly
+                fig = px.bar(
+                    plot_df, 
+                    x='Modalité', 
+                    y='Pourcentage',
+                    title=f'Répartition - {selected_col}',
+                    labels={'Pourcentage': 'Fréquence (%)', 'Modalité': selected_col},
+                    color_discrete_sequence=['#60A5FA'],
+                    text=[f"{pct:.1f}%<br>({eff})" for pct, eff in zip(percentages.values, counts.values)]
+                )
+                
+                # Personnaliser l'affichage
+                fig.update_traces(
+                    textposition='inside',
+                    textfont=dict(size=11, color='white', family='Arial'),
+                    hovertemplate='<b>%{x}</b><br>Effectif: %{customdata[0]}<br>Fréquence: %{y:.1f}%<extra></extra>',
+                    customdata=plot_df[['Effectif']].values,
+                    textangle=0,
+                    insidetextanchor='middle'
+                )
+                
+                # Mettre à jour la mise en page
+                fig.update_layout(
+                    xaxis=dict(
+                        tickangle=45, 
+                        tickfont=dict(size=10),
+                        title=selected_col
+                    ),
+                    yaxis=dict(
+                        range=[0, 100], 
+                        tickfont=dict(size=10), 
+                        title='Fréquence (%)',
+                        gridcolor='lightgray'
+                    ),
+                    height=500,
+                    margin=dict(l=50, r=50, t=50, b=120),
+                    showlegend=False,
+                    plot_bgcolor='white',
+                    title_font=dict(size=14)
+                )
+                
+                fig_uni = fig
+                
+                # Pas de bouton de téléchargement supplémentaire - on utilise celui de Plotly
+                png_bytes = None
+            else:
+                # Pour toutes les autres variables, utiliser la fonction existante
+                fig_uni = _build_univariate_figure(temp_df, selected_col)
+                png_bytes = _fig_to_png_bytes(fig_uni)
+            
+            # Bouton de téléchargement uniquement pour les graphiques matplotlib
             if png_bytes is not None:
                 safe_name = "".join(c if c.isalnum() or c in ("-", "_") else "_" for c in str(selected_col))
                 st.download_button(
-                    "PNG",
+                    "📥 Télécharger PNG",
                     data=png_bytes,
                     file_name=f"{safe_name}.png",
                     mime="image/png",
                     key=f"dl_png_uni_{safe_name}",
                 )
-            st.pyplot(fig_uni, use_container_width=True)
-            plt.close(fig_uni)
-
+            
+            # Afficher le graphique
+            if selected_col in special_categorical_vars:
+                st.plotly_chart(fig_uni, use_container_width=True)
+            else:
+                st.pyplot(fig_uni, use_container_width=True)
+                plt.close(fig_uni)
 with tab_domaines_rps:
     st.subheader("Domaines et sous-domaines")
     socio_df = filtered_df.copy() if "filtered_df" in locals() else df.copy()
