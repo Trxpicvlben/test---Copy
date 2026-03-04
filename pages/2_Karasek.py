@@ -1562,7 +1562,7 @@ def render_tab2(df, lang):
                 if lang == "en" else
                 {"Actif": "Actif", "Detendu": "Détendu", "Détendu": "Détendu", "Tendu": "Tendu", "Passif": "Passif"}
             )
-            df_plot["quad_display"] = df_plot[quad_col].map(qmap).fillna(df_plot[quad_col])
+            df_plot["quad_display"] = df_plot[quad_col].astype(str).map(qmap).fillna(df_plot[quad_col].astype(str))
             color_map = {v: KARASEK_COLORS.get(k, "#94A3B8") for k, v in qmap.items()}
             fig_sc = px.scatter(
                 df_plot, x="Lat_score", y="Dem_score", color="quad_display",
@@ -1671,6 +1671,21 @@ def main():
     render_header(lang)
     lang = st.session_state["lang"]
 
+    # ── Sidebar import ────────────────────────────────────────────────────────
+    with st.sidebar:
+        st.header("📂 Données")
+        _kar_sidebar_up = st.file_uploader(
+            "Charger un fichier Excel ou CSV",
+            type=["xlsx", "xls", "csv"],
+            help="Glissez-déposez ou cliquez pour sélectionner votre fichier Karasek.",
+            key="karasek_sidebar_uploader",
+        )
+    if _kar_sidebar_up is not None:
+        _b = _kar_sidebar_up.read()
+        if _b:
+            st.session_state["karasek_sidebar_bytes"] = _b
+            st.session_state["karasek_sidebar_name"]  = _kar_sidebar_up.name
+
     # ── Import fichier ────────────────────────────────────────────────────────
     st.markdown("## 📤 Import des données")
     st.markdown("Importez un fichier **CSV** ou **Excel** contenant les réponses Karasek Wave-CI.")
@@ -1682,20 +1697,33 @@ def main():
         help="Formats acceptés : CSV, Excel (.xlsx, .xls)",
     )
 
+    _kar_preload = st.session_state.get("karasek_sidebar_bytes") is not None
     if uploaded is None:
-        st.info("👆 En attente d'un fichier… L'analyse démarrera automatiquement après l'import.")
-        st.stop()
+        if _kar_preload:
+            st.caption(f"📎 Fichier sidebar prêt : **{st.session_state.get('karasek_sidebar_name','')}** — cliquez 🚀 pour lancer")
+        else:
+            st.info("👆 En attente d'un fichier… L'analyse démarrera automatiquement après l'import.")
+            st.stop()
 
     # ── Chargement brut ───────────────────────────────────────────────────────
-    ext = uploaded.name.split(".")[-1].lower()
     try:
-        if ext == "csv":
-            df_raw = load_uploaded_csv(uploaded)
-        elif ext in ("xlsx", "xls"):
-            df_raw = pd.read_excel(uploaded)
+        if uploaded is not None:
+            ext = uploaded.name.split(".")[-1].lower()
+            if ext == "csv":
+                df_raw = load_uploaded_csv(uploaded)
+            elif ext in ("xlsx", "xls"):
+                df_raw = pd.read_excel(uploaded)
+            else:
+                st.error(f"Format non supporté : {ext}")
+                st.stop()
         else:
-            st.error(f"Format non supporté : {ext}")
-            st.stop()
+            # Utiliser le fichier chargé via la sidebar
+            _kbuf = io.BytesIO(st.session_state["karasek_sidebar_bytes"])
+            _kfn  = st.session_state["karasek_sidebar_name"].lower()
+            if _kfn.endswith((".xlsx", ".xls")):
+                df_raw = pd.read_excel(_kbuf)
+            else:
+                df_raw = load_uploaded_csv(_kbuf)
     except Exception as e:
         st.error(f"Erreur lors du chargement : {e}")
         st.stop()

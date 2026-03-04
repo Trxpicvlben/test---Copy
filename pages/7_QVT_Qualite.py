@@ -5,6 +5,7 @@
 # Dépendances  : pip install streamlit plotly pandas numpy openpyxl
 # =============================================================================
 
+import io
 import re
 import unicodedata
 
@@ -21,7 +22,7 @@ st.set_page_config(
     layout="wide",
     page_title="QVT Dashboard",
     page_icon="QVT ",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -669,22 +670,76 @@ def question_stats(df: pd.DataFrame, question_map: dict) -> pd.DataFrame:
 def main():
     inject_css()
 
-    # ── HERO ──
-    st.markdown("""
-    <div class="hero">
-        <h1>QVT <span>Dashboard</span></h1>
-        <p>Qualité de Vie au Travail &nbsp;·&nbsp; Analyse complète</p>
-    </div>
-    """, unsafe_allow_html=True)
+    # ── TOPBAR YODAN ──────────────────────────────────────────────────────────
+    st.markdown(
+        '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">'
+        '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">',
+        unsafe_allow_html=True,
+    )
+    _col_top, _col_back = st.columns([9, 1])
+    with _col_top:
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:12px;background:white;border-radius:12px;'
+            'padding:14px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),'
+            '0 4px 12px rgba(30,64,175,0.08);border:1px solid #e8edf5;">'
+            '<div style="width:38px;height:38px;background:linear-gradient(135deg,#22c55e,#16a34a);'
+            'border-radius:10px;display:flex;align-items:center;justify-content:center;">'
+            '<i class="fas fa-heart" style="color:white;font-size:15px;"></i></div>'
+            '<div>'
+            '<div style="font-size:16px;font-weight:700;color:#1e293b;">QVT — Qualité de Vie au Travail</div>'
+            '<div style="font-size:11px;color:#64748b;margin-top:1px;">Analyse de la satisfaction et du bien-être · YODAN Analytics</div>'
+            '</div></div>',
+            unsafe_allow_html=True,
+        )
+    with _col_back:
+        st.write("")
+        st.write("")
+        if st.button("← Accueil", key="back_home_qvt", use_container_width=True):
+            st.switch_page("app.py")
 
-    # ── UPLOAD ──
-    uploaded = st.file_uploader("Importer un fichier Excel (.xlsx)", type=["xlsx"])
-    if uploaded is None:
-        st.info("Importez votre fichier Excel pour démarrer l'analyse. Le fichier doit contenir les colonnes de réponses aux 20 questions QVT (valeurs 1-4 ou libellés textuels) ainsi que les variables sociodémographiques.")
+    # ── SIDEBAR IMPORT ────────────────────────────────────────────────────────
+    with st.sidebar:
+        st.header("📂 Données")
+        _qvt_sidebar_up = st.file_uploader(
+            "Charger un fichier Excel ou CSV",
+            type=["xlsx", "xls", "csv"],
+            help="Glissez-déposez ou cliquez pour sélectionner votre fichier QVT.",
+            key="qvt_sidebar_uploader",
+        )
+    if _qvt_sidebar_up is not None:
+        _b = _qvt_sidebar_up.read()
+        if _b:
+            st.session_state["qvt_file_bytes"] = _b
+            st.session_state["qvt_file_name"]  = _qvt_sidebar_up.name
+
+    # ── CHARGEMENT ────────────────────────────────────────────────────────────
+    if "qvt_file_bytes" in st.session_state:
+        _qfn  = st.session_state["qvt_file_name"]
+        _qbuf = io.BytesIO(st.session_state["qvt_file_bytes"])
+        try:
+            if _qfn.lower().endswith((".xlsx", ".xls")):
+                uploaded_data = _qbuf
+            else:
+                uploaded_data = _qbuf
+            df_raw = load_excel(uploaded_data)
+        except Exception as e:
+            st.error(f"❌ Erreur lors du chargement : {e}")
+            st.stop()
+    else:
+        # Fallback : uploader dans la zone principale
+        st.info("📂 Chargez votre fichier de données dans la **barre latérale** ou ici pour démarrer l'analyse.")
+        uploaded = st.file_uploader(
+            "Importer un fichier Excel ou CSV",
+            type=["xlsx", "xls", "csv"],
+            key="qvt_main_uploader",
+        )
+        if uploaded is not None:
+            _b = uploaded.read()
+            if _b:
+                st.session_state["qvt_file_bytes"] = _b
+                st.session_state["qvt_file_name"]  = uploaded.name
+                st.rerun()
         st.stop()
-
-    # ── CHARGEMENT ──
-    df_raw = load_excel(uploaded)
     df_raw = add_derived_columns(df_raw)
     question_map = resolve_questions(df_raw)
 

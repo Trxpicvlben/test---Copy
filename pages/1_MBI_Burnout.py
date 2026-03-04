@@ -82,11 +82,13 @@ st.markdown(
 # ════════════════════════════════════════════════════════════
 # SESSION STATE
 # ════════════════════════════════════════════════════════════
-if 'mbi_df'        not in st.session_state: st.session_state['mbi_df']        = None
-if 'mbi_nom'       not in st.session_state: st.session_state['mbi_nom']       = ''
-if 'mbi_effectif'  not in st.session_state: st.session_state['mbi_effectif']  = None
-if 'mbi_clean_log' not in st.session_state: st.session_state['mbi_clean_log'] = ''
-if 'mbi_matched_q' not in st.session_state: st.session_state['mbi_matched_q'] = 0
+if 'mbi_df'           not in st.session_state: st.session_state['mbi_df']           = None
+if 'mbi_nom'          not in st.session_state: st.session_state['mbi_nom']          = ''
+if 'mbi_effectif'     not in st.session_state: st.session_state['mbi_effectif']     = None
+if 'mbi_clean_log'    not in st.session_state: st.session_state['mbi_clean_log']    = ''
+if 'mbi_matched_q'    not in st.session_state: st.session_state['mbi_matched_q']    = 0
+if 'mbi_sidebar_bytes' not in st.session_state: st.session_state['mbi_sidebar_bytes'] = None
+if 'mbi_sidebar_name'  not in st.session_state: st.session_state['mbi_sidebar_name']  = ''
 
 MBI_COLS = ['mbi_q1','mbi_q2','mbi_q3','mbi_q4','mbi_q5','mbi_q6','mbi_q7',
             'mbi_q8','mbi_q9','mbi_q10','mbi_q11','mbi_q12','mbi_q13','mbi_q14',
@@ -470,32 +472,51 @@ def kpi(icon, icon_color, icon_bg, bar_color, value, unit, sub, label):
     )
 
 # ════════════════════════════════════════════════════════════
-# TOPBAR (nom dynamique)
+# TOPBAR YODAN
 # ════════════════════════════════════════════════════════════
-nom_display = (st.session_state['mbi_nom'] if st.session_state['mbi_nom'] else 'Votre Entreprise').replace('&','&amp;')
-
 st.markdown(
-    '<div style="display:flex;align-items:center;justify-content:space-between;'
-    'background:white;border-radius:12px;padding:14px 24px;margin-bottom:20px;'
-    'box-shadow:0 1px 3px rgba(0,0,0,0.06),0 4px 12px rgba(30,64,175,0.08);'
-    'border:1px solid #e8edf5;">'
-    '<div style="display:flex;align-items:center;gap:14px;flex:1;justify-content:center;">'
-    '<div style="width:48px;height:48px;background:linear-gradient(135deg,#dc2626,#ef4444);'
-    'border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
-    '<i class="fas fa-fire" style="color:white;font-size:20px;"></i></div>'
-    '<div style="text-align:center;">'
-    '<div style="font-size:26px;font-weight:700;color:#1e293b;letter-spacing:-0.5px;">MBI — Maslach Burnout Inventory</div>'
-    f'<div style="font-size:15px;font-weight:600;color:#334866;margin-top:5px;">Analyse du burnout professionnel · {nom_display}</div>'
-    '</div></div>'
-    '<a href="/" target="_self" style="text-decoration:none;">'
-    '<div style="display:flex;align-items:center;gap:8px;padding:7px 14px;'
-    'background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer;">'
-    '<i class="fas fa-arrow-left" style="color:#64748b;font-size:12px;"></i>'
-    '<span style="font-size:12px;font-weight:600;color:#64748b;">Accueil</span>'
-    '</div></a>'
-    '</div>',
-    unsafe_allow_html=True
+    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">'
+    '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">',
+    unsafe_allow_html=True,
 )
+_col_top, _col_back = st.columns([9, 1])
+with _col_top:
+    st.markdown(
+        '<div style="display:flex;align-items:center;gap:12px;background:white;border-radius:12px;'
+        'padding:14px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),'
+        '0 4px 12px rgba(30,64,175,0.08);border:1px solid #e8edf5;">'
+        '<div style="width:38px;height:38px;background:linear-gradient(135deg,#dc2626,#ef4444);'
+        'border-radius:10px;display:flex;align-items:center;justify-content:center;">'
+        '<i class="fas fa-fire" style="color:white;font-size:15px;"></i></div>'
+        '<div>'
+        '<div style="font-size:16px;font-weight:700;color:#1e293b;">MBI — Maslach Burnout Inventory</div>'
+        '<div style="font-size:11px;color:#64748b;margin-top:1px;">Analyse du burnout professionnel · YODAN Analytics</div>'
+        '</div></div>',
+        unsafe_allow_html=True,
+    )
+with _col_back:
+    st.write("")
+    st.write("")
+    if st.button("← Accueil", key="back_home_mbi", use_container_width=True):
+        st.switch_page("app.py")
+
+# ════════════════════════════════════════════════════════════
+# IMPORT SIDEBAR
+# ════════════════════════════════════════════════════════════
+with st.sidebar:
+    st.header("📂 Données")
+    _mbi_sidebar_up = st.file_uploader(
+        "Charger un fichier Excel ou CSV",
+        type=["xlsx", "xls", "csv"],
+        help="Glissez-déposez ou cliquez pour sélectionner votre fichier MBI.",
+        key="mbi_sidebar_uploader",
+    )
+
+if _mbi_sidebar_up is not None:
+    _b = _mbi_sidebar_up.read()
+    if _b:
+        st.session_state["mbi_sidebar_bytes"] = _b
+        st.session_state["mbi_sidebar_name"]  = _mbi_sidebar_up.name
 
 # ════════════════════════════════════════════════════════════
 # SECTION IMPORT
@@ -503,6 +524,9 @@ st.markdown(
 _data_loaded = st.session_state['mbi_df'] is not None and st.session_state['mbi_nom']
 
 if not _data_loaded:
+    # Si un fichier a été chargé depuis la sidebar, pré-remplir l'uploader central
+    _sidebar_preload = st.session_state.get('mbi_sidebar_bytes') is not None
+
     sec("Configuration de l'analyse")
     st.markdown(
         '<div style="background:white;border-radius:12px;padding:20px 24px 16px;'
@@ -522,6 +546,8 @@ if not _data_loaded:
                                     step=1, key="input_effectif")
     with col_file:
         uploaded = st.file_uploader("Base de données MBI (CSV / Excel)", type=['csv','xlsx','xls'], key="upload_mbi")
+        if uploaded is None and _sidebar_preload:
+            st.caption(f"📎 Fichier sidebar prêt : **{st.session_state['mbi_sidebar_name']}**")
     with col_btn:
         st.markdown("<div style='height:27px'></div>", unsafe_allow_html=True)
         lancer = st.button("🚀  Lancer", use_container_width=True, key="btn_lancer")
@@ -529,21 +555,38 @@ if not _data_loaded:
     if lancer:
         errors = []
         if not nom_input.strip(): errors.append("Veuillez saisir le nom de l'entreprise.")
-        if uploaded is None:       errors.append("Veuillez importer un fichier CSV ou Excel.")
+        # Accepter soit l'uploader central, soit le fichier sidebar
+        has_file = uploaded is not None or _sidebar_preload
+        if not has_file: errors.append("Veuillez importer un fichier CSV ou Excel.")
         if errors:
             for e in errors: st.error(f"❌ {e}")
         else:
             try:
-                # ── Lecture brute (CSV ou Excel) ───────────────────────
-                ext = uploaded.name.rsplit('.', 1)[-1].lower()
-                if ext in ('xlsx', 'xls'):
-                    raw = pd.read_excel(uploaded)
+                # ── Lecture brute (priorité uploader central, sinon sidebar) ──
+                if uploaded is not None:
+                    ext = uploaded.name.rsplit('.', 1)[-1].lower()
+                    if ext in ('xlsx', 'xls'):
+                        raw = pd.read_excel(uploaded)
+                    else:
+                        try:
+                            raw = pd.read_csv(uploaded, encoding='utf-8-sig')
+                        except Exception:
+                            uploaded.seek(0)
+                            raw = pd.read_csv(uploaded, encoding='latin-1')
                 else:
-                    try:
-                        raw = pd.read_csv(uploaded, encoding='utf-8-sig')
-                    except Exception:
-                        uploaded.seek(0)
-                        raw = pd.read_csv(uploaded, encoding='latin-1')
+                    # Fichier depuis sidebar
+                    _buf = io.BytesIO(st.session_state['mbi_sidebar_bytes'])
+                    _fn  = st.session_state['mbi_sidebar_name'].lower()
+                    if _fn.endswith(('.xlsx', '.xls')):
+                        raw = pd.read_excel(_buf)
+                    else:
+                        for _enc in ('utf-8-sig', 'latin-1', 'cp1252'):
+                            try:
+                                _buf.seek(0)
+                                raw = pd.read_csv(_buf, encoding=_enc)
+                                break
+                            except UnicodeDecodeError:
+                                continue
 
                 all_logs = []
                 all_logs.append("═══ ÉTAPE 1 : Fuzzy match des questions MBI ═══")
@@ -555,7 +598,6 @@ if not _data_loaded:
                 # ── Vérification des 22 questions après fuzzy ──────────
                 manquantes = [c for c in MBI_COLS if c not in raw.columns]
                 if manquantes:
-                    # Afficher le journal même en cas d'échec
                     cleaning_log = "\n".join(all_logs)
                     with st.expander("📋 Journal de nettoyage automatique", expanded=True):
                         st.text(cleaning_log)
@@ -610,11 +652,13 @@ with col_badge:
     )
 with col_reset:
     if st.button("↺ Changer", key="btn_reset", use_container_width=True):
-        st.session_state['mbi_df']        = None
-        st.session_state['mbi_nom']       = ''
-        st.session_state['mbi_effectif']  = None
-        st.session_state['mbi_clean_log'] = ''
-        st.session_state['mbi_matched_q'] = 0
+        st.session_state['mbi_df']            = None
+        st.session_state['mbi_nom']           = ''
+        st.session_state['mbi_effectif']      = None
+        st.session_state['mbi_clean_log']     = ''
+        st.session_state['mbi_matched_q']     = 0
+        st.session_state['mbi_sidebar_bytes'] = None
+        st.session_state['mbi_sidebar_name']  = ''
         st.rerun()
 
 # ── Journal de nettoyage automatique ─────────────────────────
