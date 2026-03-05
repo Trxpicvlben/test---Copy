@@ -15,7 +15,7 @@ import io
 st.set_page_config(
     page_title="Tableau de Bord - Santé et Sécurité au Travail (SST)",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # ===============================
@@ -156,14 +156,7 @@ if _sst_sidebar_up is not None:
 # ===============================
 # CHARGEMENT DES DONNÉES
 # ===============================
-@st.cache_data
-def load_data():
-    try:
-        data_raw = pd.read_excel("data/SST3.xlsx")
-        return data_raw
-    except Exception as e:
-        st.error(f"Erreur de chargement des données : {e}")
-        return None
+
 
 # ===============================
 # NETTOYAGE DES DONNÉES
@@ -572,33 +565,33 @@ def get_non_questions(row_data, principe, questions_par_principe):
 # ════════════════════════════════════════════════════════════
 # CHARGEMENT ET PRÉPARATION DES DONNÉES
 # ════════════════════════════════════════════════════════════
-if "sst_file_bytes" in st.session_state:
-    _fn = st.session_state["sst_file_name"]
-    _buf = io.BytesIO(st.session_state["sst_file_bytes"])
-    try:
-        if _fn.lower().endswith(".csv"):
-            data_raw = pd.read_csv(_buf, sep=None, engine="python")
-        else:
-            data_raw = pd.read_excel(_buf)
-    except Exception as e:
-        st.error(f"❌ Erreur lors du chargement : {e}")
-        data_raw = None
-else:
-    data_raw = load_data()
-    if data_raw is None:
-        st.info("📂 Veuillez charger un fichier de données (Excel ou CSV) pour démarrer l'analyse.")
-        _main_up = st.file_uploader(
-            "Ou importez votre fichier ici",
-            type=["xlsx", "xls", "csv"],
-            key="sst_main_uploader",
-        )
-        if _main_up is not None:
-            _b = _main_up.read()
-            if _b:
-                st.session_state["sst_file_bytes"] = _b
-                st.session_state["sst_file_name"] = _main_up.name
-        if "sst_file_bytes" not in st.session_state:
-            st.stop()
+if "sst_file_bytes" not in st.session_state:
+    st.info("Veuillez charger un fichier de données (Excel ou CSV) pour démarrer l'analyse.")
+    _main_up = st.file_uploader(
+        "Ou importez votre fichier ici",
+        type=["xlsx", "xls", "csv"],
+        help="Glissez-déposez ou cliquez pour sélectionner votre fichier de données.",
+        key="sst_main_uploader",
+    )
+    if _main_up is not None:
+        _b = _main_up.read()
+        if _b:
+            st.session_state["sst_file_bytes"] = _b
+            st.session_state["sst_file_name"] = _main_up.name
+            st.rerun()
+    st.stop()
+
+_fn = st.session_state["sst_file_name"]
+_buf = io.BytesIO(st.session_state["sst_file_bytes"])
+try:
+    if _fn.lower().endswith(".csv"):
+        data_raw = pd.read_csv(_buf, sep=None, engine="python")
+    else:
+        data_raw = pd.read_excel(_buf)
+except Exception as e:
+    st.error(f"❌ Erreur lors du chargement : {e}")
+    st.stop()
+    data_raw = None
 
 if data_raw is not None:
     data_raw = clean_data(data_raw)

@@ -297,16 +297,7 @@ def preparer_base(df_in: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def find_csv() -> str | None:
-    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    for p in [
-        os.path.join(base, "data", "Charge_mentale_2.csv"),
-        "data/Charge_mentale_2.csv",
-        "Charge_mentale_2.csv",
-    ]:
-        if os.path.exists(p):
-            return p
-    return None
+
 
 
 def familles_filtres(df: pd.DataFrame):
@@ -511,62 +502,40 @@ if sidebar_up is not None:
         st.session_state["cm_file_bytes"] = b
         st.session_state["cm_file_name"]  = sidebar_up.name
 
-df = None
-
-if "cm_file_bytes" in st.session_state:
-    fn  = st.session_state["cm_file_name"]
-    buf = io.BytesIO(st.session_state["cm_file_bytes"])
-    try:
-        if fn.lower().endswith(".csv"):
-            for enc in ("utf-8-sig", "latin-1", "cp1252", "iso-8859-1"):
-                try:
-                    buf.seek(0)
-                    raw = pd.read_csv(buf, encoding=enc, sep=None, engine="python")
-                    break
-                except UnicodeDecodeError:
-                    continue
-            else:
-                raise ValueError("Impossible de décoder le fichier CSV (encodage non reconnu).")
-        else:
-            raw = pd.read_excel(buf)
-        df = preparer_base(raw)
-    except Exception as e:
-        st.error(f"❌ Erreur lors du chargement : {e}")
-        st.stop()
-else:
-    csv_path = find_csv()
-    if csv_path:
-        try:
-            for enc in ("utf-8-sig", "latin-1", "cp1252", "iso-8859-1"):
-                try:
-                    raw = pd.read_csv(csv_path, encoding=enc, sep=None, engine="python")
-                    break
-                except UnicodeDecodeError:
-                    continue
-            else:
-                raise ValueError("Impossible de décoder le fichier CSV (encodage non reconnu).")
-            df = preparer_base(raw)
-        except Exception as e:
-            st.error(f"❌ Erreur CSV local : {e}")
-            st.stop()
-
-if df is None:
-    st.markdown(
-        """
-        <div class="upload-note">
-        <h3>Import requis pour démarrer</h3>
-        <p>Chargez votre fichier CSV/Excel dans la barre latérale pour activer le tableau de bord.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
+if "cm_file_bytes" not in st.session_state:
+    st.info("Veuillez charger un fichier de données (Excel ou CSV) pour démarrer l'analyse.")
+    main_up = st.file_uploader(
+        "Ou importez votre fichier ici",
+        type=["xlsx", "xls", "csv"],
+        help="Glissez-déposez ou cliquez pour sélectionner votre fichier de données.",
+        key="cm_main_uploader",
     )
-    main_up = st.file_uploader("Ou importez votre fichier ici", type=["xlsx","xls","csv"], key="cm_main_uploader")
     if main_up is not None:
         b = main_up.read()
         if b:
             st.session_state["cm_file_bytes"] = b
             st.session_state["cm_file_name"]  = main_up.name
             st.rerun()
+    st.stop()
+
+fn  = st.session_state["cm_file_name"]
+buf = io.BytesIO(st.session_state["cm_file_bytes"])
+try:
+    if fn.lower().endswith(".csv"):
+        for enc in ("utf-8-sig", "latin-1", "cp1252", "iso-8859-1"):
+            try:
+                buf.seek(0)
+                raw = pd.read_csv(buf, encoding=enc, sep=None, engine="python")
+                break
+            except UnicodeDecodeError:
+                continue
+        else:
+            raise ValueError("Impossible de décoder le fichier CSV (encodage non reconnu).")
+    else:
+        raw = pd.read_excel(buf)
+    df = preparer_base(raw)
+except Exception as e:
+    st.error(f"❌ Erreur lors du chargement : {e}")
     st.stop()
 
 # ============================================================
