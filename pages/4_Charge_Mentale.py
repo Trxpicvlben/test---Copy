@@ -19,16 +19,9 @@ st.set_page_config(
     page_title="Charge Mentale - YODAN Analytics",
     page_icon="🧠",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
-# Après st.set_page_config()
-st.markdown("""
-<style>
-    [data-testid="collapsedControl"] {
-        display: block !important;
-    }
-</style>
-""", unsafe_allow_html=True)
+
 # ============================================================
 # CONSTANTES
 # ============================================================
@@ -144,12 +137,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-# Ajoutez ceci après l'en-tête
-col_sidebar_btn, _ = st.columns([1, 5])
-with col_sidebar_btn:
-    if st.button("📂 Ouvrir l'import", type="primary"):
-        js = "window.parent.document.querySelector('[data-testid=\"collapsedControl\"]').click()"
-        st.components.v1.html(f"<script>{js}</script>", height=0)
+
 # ============================================================
 # FONCTIONS UTILITAIRES
 # ============================================================
@@ -509,24 +497,20 @@ st.markdown("<hr style='border:none;border-top:1px solid #e2e8f0;margin:4px 0 16
 # ============================================================
 # CHARGEMENT DES DONNÉES
 # ============================================================
-# Supprimez la section sidebar et remplacez par :
-with st.container():
-    col_up1, col_up2, col_up3 = st.columns([1, 2, 1])
-    with col_up2:
-        st.markdown("### 📂 Import des données")
-        main_uploader = st.file_uploader(
-            "Charger un fichier Excel ou CSV",
-            type=["xlsx", "xls", "csv"],
-            key="main_uploader",
-            label_visibility="visible"
-        )
-        
-        if main_uploader is not None:
-            b = main_uploader.read()
-            if b:
-                st.session_state["cm_file_bytes"] = b
-                st.session_state["cm_file_name"] = main_uploader.name
-                st.rerun()
+with st.sidebar:
+    st.header("📂 Données")
+    sidebar_up = st.file_uploader(
+        "Charger un fichier Excel ou CSV",
+        type=["xlsx", "xls", "csv"],
+        key="cm_sidebar_uploader",
+    )
+
+if sidebar_up is not None:
+    b = sidebar_up.read()
+    if b:
+        st.session_state["cm_file_bytes"] = b
+        st.session_state["cm_file_name"]  = sidebar_up.name
+
 df = None
 
 if "cm_file_bytes" in st.session_state:
