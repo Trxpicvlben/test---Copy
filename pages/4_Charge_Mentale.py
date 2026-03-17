@@ -41,6 +41,14 @@ CSV_Q_COLS = [
     "au_cours_du_dernier_mois_a_quelle_frequence_vous_etes_vous_senti_depasse_par_les_evenements",
 ]
 Q_COLS = [f"Stress_Q{i+1}" for i in range(10)]
+BINARY_COLS = [
+    "Handicap_Physique",
+    "Maladie_Chronique",
+    "Alcool",
+    "Fumeur",
+    "Pratique_Alcool",
+    "Suivi_Psychologique",
+]
 
 PALETTE = {
     "pink":   "#E35DA8",
@@ -56,6 +64,9 @@ CHART_SEQUENCE = [
     PALETTE["blue"], PALETTE["pink"], PALETTE["orange"],
     PALETTE["teal"], PALETTE["green"], "#6A5ACD",
 ]
+BI_SEQUENCE = [
+    PALETTE["blue"], PALETTE["pink"], PALETTE["teal"], "#6A5ACD", "#8B95A7",
+]
 QUESTION_LABELS = {
     "Stress_Q1":  "Q1 - Contrarié(e) par un événement inattendu ?",
     "Stress_Q2":  "Q2 - Incapable de contrôler les choses importantes ?",
@@ -67,6 +78,11 @@ QUESTION_LABELS = {
     "Stress_Q8":  "Q8 - Ne pouviez pas maîtriser toutes les choses à faire ?",
     "Stress_Q9":  "Q9 - Avez pu contrôler vos difficultés ? (inversé)",
     "Stress_Q10": "Q10 - Dépassé(e) par les événements ?",
+    "Anciennete_cat": "Ancienneté",
+    "Tranche_Age": "Tranche d'âge",
+    "taille_cat": "Taille",
+    "poids_cat": "Poids",
+    "Situation_matrimoniale": "Situation matrimoniale",
 }
 
 # ============================================================
@@ -74,36 +90,36 @@ QUESTION_LABELS = {
 # ============================================================
 st.markdown(
     '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">'
-    '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">',
+    '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,700&display=swap" rel="stylesheet">',
     unsafe_allow_html=True,
 )
 st.markdown(
     """
     <style>
     :root{
-    --ink:#24395F; --muted:#6B7EA6; --blue:#4293D8; --pink:#E35DA8;
+    --ink:#24395F; --muted:#6B7EA6; --blue:#3D74D7; --pink:#E35DA8;
     --orange:#E98A2F; --teal:#22B8B2; --green:#39B56A; --danger:#E25555;
-    --card:#FFFFFF; --line:#DCE7F7; --shadow:0 12px 28px rgba(36,57,95,0.10);
+    --card:#FFFFFF; --line:#D8E2F0; --shadow:0 10px 24px rgba(35,51,80,0.08);
     }
-    html,body,[class*="css"]{font-family:Inter,sans-serif!important;color:#0F172A}
-    .main{background:#f1f4f9!important}
-    .block-container{padding:1.5rem 2rem!important;max-width:1300px!important}
-    #MainMenu,footer,header{visibility:hidden}
-    .stApp{background:linear-gradient(145deg,#f3f7ff 0%,#eef5ff 45%,#f8fbff 100%);color:var(--ink);font-family:"Segoe UI",Roboto,Arial,sans-serif;}
-    [data-testid="metric-container"]{background:white;border-radius:12px;padding:1.1rem 1.3rem;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(15,23,42,0.06);transition:all 0.2s}
-    [data-testid="metric-container"]:hover{transform:translateY(-2px);border-color:#93c5fd;box-shadow:0 4px 16px rgba(37,99,235,0.12)}
-    [data-testid="stMetricLabel"] p{font-size:0.72rem!important;color:#64748b!important;text-transform:uppercase;letter-spacing:0.06em;font-weight:600!important}
-    [data-testid="stMetricValue"]{font-family:Sora,sans-serif!important;font-size:1.7rem!important;font-weight:700!important;color:#0f172a!important}
-    .stButton>button{background:white!important;color:#1e40af!important;border:1.5px solid #bfdbfe!important;border-radius:10px!important;font-weight:600!important;font-size:13px!important;transition:all 0.2s!important}
-    .stButton>button:hover{background:#1e40af!important;color:white!important}
-    .hero{background:linear-gradient(120deg,#1e2e67,#2d4b9a 55%,#1c8ea0);border-radius:16px;padding:16px 18px;border:1px solid rgba(35,58,120,0.20);margin-bottom:12px;box-shadow:0 14px 30px rgba(24,47,109,0.18);}
-    .hero h1{margin:0;font-size:28px;color:#f5f9ff;letter-spacing:0.2px;}
-    .hero p{margin:6px 0 0;color:#deebff;font-size:14px;}
+    html,body,[class*="css"]{font-family:Manrope,sans-serif!important;color:#0F172A}
+    .main{background:#f4f6fb!important}
+    .block-container{padding:1.25rem 1.6rem!important;max-width:1280px!important}
+
+    .stApp{background:#f4f6fb;color:var(--ink);}
+    [data-testid="metric-container"]{background:white;border-radius:14px;padding:1.1rem 1.2rem;border:1px solid var(--line);box-shadow:var(--shadow);transition:all 0.2s}
+    [data-testid="metric-container"]:hover{transform:translateY(-2px);border-color:#c9d8f5;box-shadow:0 10px 24px rgba(39,63,122,0.12)}
+    [data-testid="stMetricLabel"] p{font-size:0.72rem!important;color:#6b7a99!important;text-transform:uppercase;letter-spacing:0.06em;font-weight:600!important}
+    [data-testid="stMetricValue"]{font-family:Manrope,sans-serif!important;font-size:1.7rem!important;font-weight:700!important;color:#0f172a!important}
+    .stButton>button{background:#f3f6fb!important;color:#2c3e5e!important;border:1px solid #d7e0ee!important;border-radius:999px!important;font-weight:600!important;font-size:13px!important;padding:0.4rem 1.1rem!important;box-shadow:0 6px 16px rgba(33,43,67,0.10)!important;transition:all 0.2s!important}
+    .stButton>button:hover{background:#2f67c8!important;color:white!important;border-color:#2f67c8!important}
+    .hero{background:#ffffff;border-radius:16px;padding:16px 18px;border:1px solid var(--line);margin-bottom:12px;box-shadow:var(--shadow);}
+    .hero h1{margin:0;font-size:24px;color:#1f2a44;letter-spacing:0.1px;}
+    .hero p{margin:6px 0 0;color:#6b7a99;font-size:13px;}
     .section-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow);}
     .section-card h3,.section-card h4{color:var(--ink);letter-spacing:0.2px;}
-    .filters-panel{background:linear-gradient(115deg,#eef4ff 0%,#f7fbff 48%,#f0fcff 100%);border:1px solid #d5e4ff;border-radius:16px;padding:14px 14px 12px;box-shadow:0 14px 28px rgba(45,75,154,0.12);margin-bottom:12px;position:relative;overflow:hidden;}
-    .filters-title{margin:0;font-size:28px;font-weight:900;line-height:1;color:#223962;letter-spacing:0.2px;}
-    .filters-sub{margin-top:8px;font-size:13px;color:#5f74a3;}
+    .filters-panel{background:#ffffff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:12px;}
+    .filters-title{margin:0;font-size:22px;font-weight:800;line-height:1;color:#223962;letter-spacing:0.2px;}
+    .filters-sub{margin-top:6px;font-size:13px;color:#5f74a3;}
     .kpi-strip{background:#ffffff;border:1px solid #e6edf9;border-radius:14px;min-height:94px;box-shadow:0 8px 20px rgba(31,50,103,0.08);display:grid;grid-template-columns:6px 56px 1fr;align-items:center;overflow:hidden;}
     .kpi-accent{width:6px;height:100%;}
     .kpi-icon-wrap{display:flex;justify-content:center;}
@@ -111,6 +127,8 @@ st.markdown(
     .kpi-body{padding:10px 14px 10px 6px;}
     .klabel{color:#7688af;font-size:12px;letter-spacing:0.2px;margin-bottom:3px;}
     .kval{color:#223252;font-weight:800;font-size:34px;line-height:1;}
+    .section-title{font-family:"Playfair Display",serif;font-style:italic;font-size:22px;color:#1f2a44;margin:10px 0 12px;}
+    .section-title::after{content:"";display:block;width:86px;height:2px;background:#d04a4a;margin-top:6px;}
     .stress-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
     .stress-box{background:#f6f9ff;border:1px solid #dce7f7;border-radius:12px;text-align:center;padding:12px 8px;}
     .stress-box .v{font-size:28px;font-weight:800;}
@@ -125,14 +143,29 @@ st.markdown(
     .pcard-value{font-size:30px;font-weight:800;text-align:center;}
     .pcard-caption{font-size:12px;text-align:center;color:#5f657d;}
     .pcard-alert{margin-top:8px;font-size:14px;font-weight:800;}
-    .pcard-msg{font-size:12px;color:#4f556e;}
-    .upload-note{background:#ffffff;border:1px solid #dce7f7;border-radius:14px;padding:16px;box-shadow:0 10px 24px rgba(35,58,120,0.08);max-width:760px;}
-    .upload-note h3{margin:0 0 8px 0;color:#223559;font-size:24px;}
+    .pcard-msg{font-size:14px;line-height:1.55;color:#4f556e;}
+    .upload-note{background:#ffffff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);max-width:760px;}
+    .upload-note h3{margin:0 0 8px 0;color:#223559;font-size:22px;}
     .upload-note p{margin:0;color:#5f719a;}
-    [data-testid="stMetric"]{background:#ffffff;border:1px solid #dce7f7;border-radius:12px;padding:10px 12px;box-shadow:0 8px 18px rgba(36,57,95,0.08);}
-    [data-baseweb="tab-list"]{gap:8px;margin-bottom:8px;}
-    [data-baseweb="tab"]{background:#e8effc;border:1px solid #cfdcf4;border-radius:10px;color:#30446e;padding:8px 14px;}
-    [aria-selected="true"][data-baseweb="tab"]{background:#2d4b9a;color:#f6f9ff;border-color:#2d4b9a;}
+    [data-testid="stMetric"]{background:#ffffff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);}
+    [data-baseweb="tab-list"]{gap:22px;margin-bottom:6px;border-bottom:1px solid #dfe7f2;padding-bottom:4px;}
+    [data-baseweb="tab"]{background:transparent;border:none;color:#6b7a99;padding:8px 2px;font-weight:600;}
+    [aria-selected="true"][data-baseweb="tab"]{color:#2f67c8;border-bottom:2px solid #2f67c8;}
+    [data-testid="stSelectbox"]>div{border-radius:12px;border:1px solid var(--line);background:#ffffff;}
+    [data-testid="stSelectbox"] input{color:#1f2a44;}
+    [data-testid="stFileUploader"] section{border:1px dashed #d5dcea;border-radius:12px;background:#f6f8fc;}
+    [data-testid="stFileUploader"] button{background:#ffffff;border:1px solid #d7e0ee;border-radius:10px;padding:0.3rem 0.9rem;font-weight:600;}
+
+    /* ── SIDEBAR style COPSOQ ── */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E4F0FB !important;
+    }
+    [data-testid="stSidebar"] .stMarkdown,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stText {
+        color: #0F2340 !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -175,8 +208,31 @@ def style_bar_figure(fig, height=420):
     return fig
 
 
+def style_stacked_figure(fig, height=420):
+    style_figure(fig, height=height)
+    fig.update_layout(bargap=0.25, bargroupgap=0.0, uniformtext_minsize=10, uniformtext_mode="show")
+    fig.update_traces(marker_line_width=0, selector=dict(type="bar"))
+    return fig
+
+
 def label_variable(col_name: str) -> str:
     return QUESTION_LABELS.get(col_name, col_name)
+
+
+LIKERT_LABELS = {
+    0: "Jamais",
+    1: "Presque jamais",
+    2: "Parfois",
+    3: "Assez souvent",
+    4: "Très souvent",
+}
+LIKERT_ORDER = [LIKERT_LABELS[i] for i in range(5)]
+
+
+def map_likert(series: pd.Series) -> pd.Categorical:
+    s = pd.to_numeric(series, errors="coerce")
+    mapped = s.map(LIKERT_LABELS)
+    return pd.Categorical(mapped, categories=LIKERT_ORDER, ordered=True)
 
 
 def slug(text: str) -> str:
@@ -184,6 +240,32 @@ def slug(text: str) -> str:
     raw = unicodedata.normalize("NFKD", raw).encode("ascii", "ignore").decode("ascii")
     raw = re.sub(r"[^a-z0-9]+", "_", raw)
     return raw.strip("_")
+
+
+def normaliser_oui_non(series: pd.Series) -> pd.Series:
+    yes_tokens = {"oui", "o", "yes", "y", "1", "true", "vrai"}
+    no_tokens = {"non", "n", "no", "0", "false", "faux"}
+
+    def _to_oui_non(value):
+        if pd.isna(value):
+            return np.nan
+        token = slug(value)
+        if token in yes_tokens:
+            return "Oui"
+        if token in no_tokens:
+            return "Non"
+        return np.nan
+
+    return series.apply(_to_oui_non)
+
+
+def taux_oui(df_in: pd.DataFrame, col: str) -> float:
+    if col not in df_in.columns:
+        return np.nan
+    s = normaliser_oui_non(df_in[col])
+    if s.notna().sum() == 0:
+        return np.nan
+    return float((s == "Oui").mean() * 100)
 
 
 def lire_base_importee(uploaded_file) -> pd.DataFrame:
@@ -218,6 +300,18 @@ def normaliser_colonnes(df_in: pd.DataFrame) -> pd.DataFrame:
             rename_map[col] = "Fonction"
         elif s == "poste":
             rename_map[col] = "Poste"
+        elif s in {"handicap_physique", "handicap"}:
+            rename_map[col] = "Handicap_Physique"
+        elif s in {"maladie_chronique", "maladies_chroniques"}:
+            rename_map[col] = "Maladie_Chronique"
+        elif s in {"alcool", "consommation_alcool"}:
+            rename_map[col] = "Alcool"
+        elif s in {"fumez_vous", "fumeur", "consommation_tabac", "tabac"}:
+            rename_map[col] = "Fumeur"
+        elif s in {"pratique_de_l_alcool", "pratique_alcool"}:
+            rename_map[col] = "Pratique_Alcool"
+        elif s in {"suivi_pour_un_probleme_psychologique", "suivi_psychologique", "suivi_psy", "probleme_psychologique"}:
+            rename_map[col] = "Suivi_Psychologique"
         else:
             # Colonnes CSV longues → Stress_Qi
             csv_match = {csv: q for csv, q in zip(CSV_Q_COLS, Q_COLS)}
@@ -286,6 +380,10 @@ def preparer_base(df_in: pd.DataFrame) -> pd.DataFrame:
             default="20 ans et plus",
         )
 
+    for col in BINARY_COLS:
+        if col in df.columns:
+            df[col] = normaliser_oui_non(df[col])
+
     df["niveau"] = np.select(
         [df["score_stress"] <= 13,
         (df["score_stress"] > 13) & (df["score_stress"] <= 26),
@@ -316,6 +414,14 @@ def familles_filtres(df: pd.DataFrame):
             ("Direction",  "Direction"),
             ("Fonction",   "Fonction"),
             ("Poste",      "Poste"),
+        ],
+        "Variables de sante": [
+            ("Handicap physique", "Handicap_Physique"),
+            ("Maladie chronique", "Maladie_Chronique"),
+            ("Alcool", "Alcool"),
+            ("Fumeur", "Fumeur"),
+            ("Pratique de l'alcool", "Pratique_Alcool"),
+            ("Suivi psychologique", "Suivi_Psychologique"),
         ],
     }
     familles, label_to_col = {}, {}
@@ -354,24 +460,24 @@ def pictogramme_card(value, title, mode="stress", scale_max=100.0):
 
     if mode == "stress":
         if norm < 30:
-            color, title_msg = "#e25555", "Alerte rouge"
-            msg = f"Le niveau de stress est de {txt_value}. Zone critique, risque d'epuisement eleve."
+            color, title_msg = "#4fb77e", "Stabilite"
+            msg = f"Le niveau de stress est de {txt_value}. Equilibre globalement stable avec une pression percue faible. Maintenir les routines de recuperation et la charge actuelle."
         elif norm < 60:
             color, title_msg = "#e0b33f", "Vigilance"
-            msg = f"Le niveau de stress est de {txt_value}. Pression reelle, prevention recommandee."
+            msg = f"Le niveau de stress est de {txt_value}. Pression reelle et signes de vigilance. Renforcer la priorisation, prevenir la surcharge et surveiller l'evolution."
         else:
-            color, title_msg = "#4fb77e", "Stabilite"
-            msg = f"Le niveau de stress est de {txt_value}. Equilibre globalement stable."
+            color, title_msg = "#e25555", "Alerte rouge"
+            msg = f"Le niveau de stress est de {txt_value}. Zone critique avec risque d'epuisement eleve. Recommandation: ajuster la charge, renforcer le soutien et agir rapidement."
     else:
         if norm < 40:
             color, title_msg = "#e25555", "Niveau fragile"
-            msg = f"Le taux de productivite est de {txt_value}. Soutien organisationnel recommande."
+            msg = f"Le taux de productivite est de {txt_value}. Niveau fragile avec performance sous tension. Un soutien organisationnel et un allègement ciblé sont recommandés."
         elif norm < 70:
             color, title_msg = "#e0b33f", "Niveau intermediaire"
-            msg = f"Le taux de productivite est de {txt_value}. Niveau correct mais sensible a la surcharge."
+            msg = f"Le taux de productivite est de {txt_value}. Niveau correct mais sensible a la surcharge. Stabiliser les flux de travail et limiter les interruptions."
         else:
             color, title_msg = "#4fb77e", "Niveau favorable"
-            msg = f"Le taux de productivite est de {txt_value}. Capacite operationnelle solide."
+            msg = f"Le taux de productivite est de {txt_value}. Capacite operationnelle solide et durable. Consolider les pratiques efficaces et préserver l'equilibre."
 
     def person_svg(c, size=20):
         return (
@@ -456,7 +562,7 @@ def construire_psy_gauge(valeur: float, titre: str, mode: str = "stress") -> go.
         margin=dict(l=20, r=20, t=50, b=20),
         paper_bgcolor="white",
         plot_bgcolor="white",
-        font=dict(family="Inter, sans-serif", color="#0f172a"),
+        font=dict(family="Manrope, sans-serif", color="#0f172a"),
     )
     return fig
 
@@ -464,48 +570,38 @@ def construire_psy_gauge(valeur: float, titre: str, mode: str = "stress") -> go.
 # ============================================================
 # EN-TÊTE YODAN
 # ============================================================
-col_h1, col_h2 = st.columns([8, 2])
-with col_h1:
+# ── Topbar style COPSOQ ─────────────────────────────────────────────────────
+st.markdown(
+    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">',
+    unsafe_allow_html=True,
+)
+_col_top, _col_back = st.columns([9, 1])
+with _col_top:
     st.markdown(
-        f'<div style="display:flex;align-items:center;gap:14px;margin-bottom:6px;">'
-        f'<div style="width:42px;height:42px;background:linear-gradient(135deg,#1e40af,#3b82f6);'
-        f'border-radius:10px;display:flex;align-items:center;justify-content:center;">'
-        f'<i class="fas fa-brain" style="color:white;font-size:18px;"></i></div>'
-        f'<div>'
-        f'<div style="font-family:Sora,sans-serif;font-size:20px;font-weight:800;color:#0f172a;">'
-        f'Charge Mentale & Stress</div>'
-        f'<div style="font-size:13px;color:#64748b;">'
-        f'Suivi de la charge mentale, du risque d\'épuisement et de la capacité productive · {COMPANY}</div>'
-        f'</div></div>',
+        '<div style="display:flex;align-items:center;gap:12px;background:white;border-radius:12px;'
+        'padding:14px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),'
+        '0 4px 12px rgba(30,64,175,0.08);border:1px solid #e8edf5;">'
+        '<div style="width:38px;height:38px;background:linear-gradient(135deg,#1e40af,#3b82f6);'
+        'border-radius:10px;display:flex;align-items:center;justify-content:center;">'
+        '<i class="fas fa-brain" style="color:white;font-size:15px;"></i></div>'
+        '<div>'
+        '<div style="font-size:16px;font-weight:700;color:#1e293b;">Charge Mentale & Stress</div>'
+        f'<div style="font-size:11px;color:#64748b;margin-top:1px;">Suivi de la charge mentale, du risque d\'épuisement et de la capacité productive · {COMPANY}</div>'
+        '</div></div>',
         unsafe_allow_html=True,
     )
-with col_h2:
-    if st.button("← Accueil", key="back_home_cm"):
+with _col_back:
+    if st.button("← Accueil", key="back_home_cm", use_container_width=True):
         st.switch_page("app.py")
-
-st.markdown("<hr style='border:none;border-top:1px solid #e2e8f0;margin:4px 0 16px;'>", unsafe_allow_html=True)
 
 # ============================================================
 # CHARGEMENT DES DONNÉES
 # ============================================================
-with st.sidebar:
-    st.header("📂 Données")
-    sidebar_up = st.file_uploader(
-        "Charger un fichier Excel ou CSV",
-        type=["xlsx", "xls", "csv"],
-        key="cm_sidebar_uploader",
-    )
-
-if sidebar_up is not None:
-    b = sidebar_up.read()
-    if b:
-        st.session_state["cm_file_bytes"] = b
-        st.session_state["cm_file_name"]  = sidebar_up.name
+st.markdown("<div style='margin-top:2.5rem;'></div>", unsafe_allow_html=True)
 
 if "cm_file_bytes" not in st.session_state:
-    st.info("Veuillez charger un fichier de données (Excel ou CSV) pour démarrer l'analyse.")
     main_up = st.file_uploader(
-        "Ou importez votre fichier ici",
+        "Charger un fichier Excel ou CSV",
         type=["xlsx", "xls", "csv"],
         help="Glissez-déposez ou cliquez pour sélectionner votre fichier de données.",
         key="cm_main_uploader",
@@ -516,6 +612,7 @@ if "cm_file_bytes" not in st.session_state:
             st.session_state["cm_file_bytes"] = b
             st.session_state["cm_file_name"]  = main_up.name
             st.rerun()
+    st.info("Veuillez charger un fichier de données (Excel ou CSV) pour démarrer l'analyse.")
     st.stop()
 
 fn  = st.session_state["cm_file_name"]
@@ -598,100 +695,101 @@ with tab_pilotage:
     pct_h = (df_v["niveau"] == "Niveau de stress eleve").sum()   * 100 / n_base
 
     st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
-    left, right = st.columns([1.2, 1.0], gap="large")
-    with left:
-        st.markdown(
-            f"""
-            <div class="section-card">
-            <h4 style="margin:0 0 10px 0;">Distribution des niveaux de stress</h4>
-            <div class="stress-grid">
-                <div class="stress-box"><div class="v" style="color:#4fd2be;">~{pct_f:.0f}%</div><div class="l">Faible</div></div>
-                <div class="stress-box"><div class="v" style="color:#e8c278;">~{pct_m:.0f}%</div><div class="l">Modéré</div></div>
-                <div class="stress-box"><div class="v" style="color:#ff808f;">~{pct_h:.0f}%</div><div class="l">Élevé</div></div>
-            </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with right:
-        pie_df = pd.DataFrame({
-            "Niveau":   ["Faible","Modéré","Élevé"],
-            "Effectif": [
-                int((df_v["niveau"] == "Niveau de stress faible").sum()),
-                int((df_v["niveau"] == "Niveau de stress modere").sum()),
-                int((df_v["niveau"] == "Niveau de stress eleve").sum()),
-            ],
-        })
-        fig_pie = px.pie(
-            pie_df, names="Niveau", values="Effectif", hole=0.58,
-            color="Niveau",
-            color_discrete_map={"Faible": PALETTE["teal"], "Modéré": PALETTE["orange"], "Élevé": PALETTE["red"]},
-        )
-        style_figure(fig_pie, height=340)
-        fig_pie.update_layout(margin=dict(l=8, r=8, t=20, b=8), legend=dict(orientation="h", y=-0.05, x=0.5, xanchor="center"))
-        fig_pie.update_traces(textinfo="percent", textfont_size=14, marker=dict(line=dict(color="#ffffff", width=2)))
-        st.plotly_chart(fig_pie, use_container_width=True)
+    st.markdown(
+        f"""
+        <div class="section-card">
+        <h4 style="margin:0 0 10px 0;">Distribution des niveaux de stress</h4>
+        <div class="stress-grid">
+            <div class="stress-box"><div class="v" style="color:{PALETTE['teal']};">~{pct_f:.0f}%</div><div class="l">Faible</div></div>
+            <div class="stress-box"><div class="v" style="color:{PALETTE['orange']};">~{pct_m:.0f}%</div><div class="l">Modéré</div></div>
+            <div class="stress-box"><div class="v" style="color:{PALETTE['red']};">~{pct_h:.0f}%</div><div class="l">Élevé</div></div>
+        </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown('<h4 style="margin:0 0 10px 0;">Répartition</h4>', unsafe_allow_html=True)
+    pie_df = pd.DataFrame({
+        "Niveau":   ["Faible","Modéré","Élevé"],
+        "Effectif": [
+            int((df_v["niveau"] == "Niveau de stress faible").sum()),
+            int((df_v["niveau"] == "Niveau de stress modere").sum()),
+            int((df_v["niveau"] == "Niveau de stress eleve").sum()),
+        ],
+    })
+    fig_pie = px.pie(
+        pie_df, names="Niveau", values="Effectif", hole=0.58,
+        color="Niveau",
+        color_discrete_map={"Faible": PALETTE["teal"], "Modéré": PALETTE["orange"], "Élevé": PALETTE["red"]},
+    )
+    style_figure(fig_pie, height=320)
+    fig_pie.update_layout(
+        margin=dict(l=8, r=8, t=10, b=8),
+        legend=dict(orientation="h", y=-0.05, x=0.5, xanchor="center"),
+    )
+    fig_pie.update_traces(textinfo="percent", textfont_size=14, marker=dict(line=dict(color="#ffffff", width=2)))
+    st.plotly_chart(fig_pie, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
     g1, g2 = st.columns(2, gap="large")
     with g1:
-        st.markdown(pictogramme_card(icm10, "Indice de Stress (ICM) sur 10", mode="stress", scale_max=10.0), unsafe_allow_html=True)
+        st.markdown(pictogramme_card(icm10, "Indice de Charge Mentale (ICM) sur 10", mode="stress", scale_max=10.0), unsafe_allow_html=True)
     with g2:
         st.markdown(pictogramme_card(tp, "Taux de Productivité", mode="productivite", scale_max=100.0), unsafe_allow_html=True)
 
 
 # ── TAB ANALYSE ──────────────────────────────────────────────
 with tab_analyse:
-    st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown("### Contexte de l'étude")
-    st.markdown(
-        """
-        Cette étude évalue la charge mentale perçue des employés via les 10 questions `Stress_Q1` à `Stress_Q10`.
-        Le score cumulé est converti en :
-        - `ICM_i` : indice de charge mentale (0–100 %)
-        - `ICM sur 10` : version de pilotage clinique
-        - `TP_i` : taux de productivité théorique
-        """
-    )
-
-    st.markdown("### Données générales")
-    total_employes  = st.number_input("Nombre total d'employés dans l'entreprise", min_value=1, value=max(int(df.shape[0]), 1), step=1)
-    pct_repondants  = (int(df.shape[0]) / max(int(total_employes), 1)) * 100
-
-    sexe_clean  = df["Sexe"].astype(str).str.strip().str.lower() if "Sexe" in df.columns else pd.Series(dtype=str)
-    nb_hommes   = int(sexe_clean.isin(["homme","h"]).sum()) if not sexe_clean.empty else 0
-    nb_femmes   = int(sexe_clean.isin(["femme","f"]).sum()) if not sexe_clean.empty else 0
-    total_sexe  = max(nb_hommes + nb_femmes, 1)
-    pct_hommes  = (nb_hommes / total_sexe) * 100
-    pct_femmes  = (nb_femmes / total_sexe) * 100
-
-    anciennete_med = np.nan
-    if "Anciennete" in df.columns:
-        anc = pd.to_numeric(df["Anciennete"], errors="coerce")
-        if anc.notna().any():
-            anciennete_med = float(anc.median())
-
-    d1, d2, d3, d4, d5 = st.columns(5)
-    d1.markdown(f'<div class="kpi-strip"><div class="kpi-accent" style="background:#ff8f9a;"></div><div class="kpi-icon-wrap"><span class="kpi-icon" style="background:#ff8f9a;">👥</span></div><div class="kpi-body"><div class="klabel">Répondants</div><div class="kval">{int(df.shape[0])}</div></div></div>', unsafe_allow_html=True)
-    d2.markdown(f'<div class="kpi-strip"><div class="kpi-accent" style="background:#5a63d8;"></div><div class="kpi-icon-wrap"><span class="kpi-icon" style="background:#5a63d8;">📈</span></div><div class="kpi-body"><div class="klabel">% répondants</div><div class="kval">{pct_repondants:.1f}%</div></div></div>', unsafe_allow_html=True)
-    d3.markdown(f'<div class="kpi-strip"><div class="kpi-accent" style="background:#4b7be5;"></div><div class="kpi-icon-wrap"><span class="kpi-icon" style="background:#4b7be5;">♂</span></div><div class="kpi-body"><div class="klabel">Hommes</div><div class="kval">{pct_hommes:.1f}%</div></div></div>', unsafe_allow_html=True)
-    d4.markdown(f'<div class="kpi-strip"><div class="kpi-accent" style="background:#e35da8;"></div><div class="kpi-icon-wrap"><span class="kpi-icon" style="background:#e35da8;">♀</span></div><div class="kpi-body"><div class="klabel">Femmes</div><div class="kval">{pct_femmes:.1f}%</div></div></div>', unsafe_allow_html=True)
-    d5.markdown(f'<div class="kpi-strip"><div class="kpi-accent" style="background:#39b56a;"></div><div class="kpi-icon-wrap"><span class="kpi-icon" style="background:#39b56a;">⏳</span></div><div class="kpi-body"><div class="klabel">Ancienneté médiane</div><div class="kval">{(f"{anciennete_med:.1f} ans" if not np.isnan(anciennete_med) else "N/A")}</div></div></div>', unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    df_an = df
 
     # ── Analyses univariées ──────────────────────────────────
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown("### Analyses univariées")
-    all_cols = list(df.columns)
+    all_cols = list(df_an.columns)
+    excluded_cols = {
+        "ID",
+        "taille_cm",
+        "Taille_cm",
+        "Age",
+        "Poids_kg",
+        "score_stress",
+        "score_stress_total",
+        "Score_Stress_Total",
+        "ICM_i",
+        "TP_i",
+    }
+    all_cols = [c for c in all_cols if c not in excluded_cols]
+    if not all_cols:
+        st.warning("Aucune variable disponible pour l'analyse.")
+        st.markdown("</div>", unsafe_allow_html=True)
+        st.stop()
     var_uni       = st.selectbox("Choisir une variable", all_cols, key="uni_var", format_func=label_variable)
     var_uni_label = label_variable(var_uni)
-    series_uni    = df[var_uni]
+    series_uni    = df_an[var_uni]
 
-    if var_uni == "Sexe":
-        if "niveau" not in df.columns:
+    if var_uni in Q_COLS:
+        likert_series = map_likert(series_uni)
+        freq = pd.Series(likert_series).value_counts(dropna=False).reindex(LIKERT_ORDER).reset_index()
+        freq.columns = ["Modalite","Effectif"]
+        freq["Pourcentage"] = (freq["Effectif"] / max(len(series_uni), 1) * 100).round(2)
+        fig_uni = px.bar(freq, x="Modalite", y="Effectif", text="Pourcentage",
+                        title=f"Distribution — {var_uni_label}", color="Modalite",
+                        color_discrete_sequence=CHART_SEQUENCE)
+        fig_uni.update_traces(texttemplate="%{text:.1f}%")
+        style_bar_figure(fig_uni, height=420)
+        fig_uni.update_layout(showlegend=False, xaxis_title="")
+        st.plotly_chart(fig_uni, use_container_width=True)
+        st.dataframe(freq, use_container_width=True)
+
+    elif var_uni == "Sexe":
+        if "niveau" not in df_an.columns:
             st.warning("La colonne 'niveau' est absente.")
         else:
-            df_s = df[["Sexe","niveau"]].copy()
+            df_s = df_an[["Sexe","niveau"]].copy()
             df_s["Sexe"] = df_s["Sexe"].astype(str).str.strip().str.title()
             df_s = df_s[df_s["Sexe"].isin(["Femme","Homme"])]
             if df_s.empty:
@@ -751,7 +849,7 @@ with tab_analyse:
         st.dataframe(freq, use_container_width=True)
 
     elif pd.api.types.is_numeric_dtype(series_uni):
-        fig_uni = px.histogram(df, x=var_uni, nbins=20, title=f"Distribution — {var_uni_label}")
+        fig_uni = px.histogram(df_an, x=var_uni, nbins=20, title=f"Distribution — {var_uni_label}")
         style_figure(fig_uni, height=420)
         st.plotly_chart(fig_uni, use_container_width=True)
         st.dataframe(series_uni.describe().to_frame("Statistiques"), use_container_width=True)
@@ -784,68 +882,136 @@ with tab_analyse:
     if var_x == var_y:
         st.warning("Choisissez deux variables différentes.")
     else:
-        sx    = df[var_x]
-        sy    = df[var_y]
-        num_x = pd.api.types.is_numeric_dtype(sx)
-        num_y = pd.api.types.is_numeric_dtype(sy)
+        df_bi = df_an.copy()
+        if var_x in Q_COLS:
+            df_bi[var_x] = map_likert(df_bi[var_x])
+        if var_y in Q_COLS:
+            df_bi[var_y] = map_likert(df_bi[var_y])
+        sx    = df_bi[var_x]
+        sy    = df_bi[var_y]
+        num_x = pd.api.types.is_numeric_dtype(sx) and var_x not in Q_COLS
+        num_y = pd.api.types.is_numeric_dtype(sy) and var_y not in Q_COLS
         table_pct = None
 
         if num_x and num_y:
-            tmp = df[[var_x, var_y]].apply(pd.to_numeric, errors="coerce").dropna()
+            tmp = df_bi[[var_x, var_y]].apply(pd.to_numeric, errors="coerce").dropna()
             tmp["X_cl"] = pd.qcut(tmp[var_x], q=5, duplicates="drop").astype(str)
             tmp["Y_cl"] = pd.qcut(tmp[var_y], q=5, duplicates="drop").astype(str)
             ct     = pd.crosstab(tmp["X_cl"], tmp["Y_cl"])
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
             grouped = ct_pct.reset_index().melt(id_vars="X_cl", var_name="Y_cl", value_name="Pourcentage")
-            fig_bi  = px.bar(grouped, x="X_cl", y="Pourcentage", color="Y_cl", barmode="group",
-                            title=f"Classes de {var_x_label} × classes de {var_y_label}")
-            fig_bi.update_traces(texttemplate="%{y:.1f}%", textposition="auto", cliponaxis=False)
-            style_bar_figure(fig_bi, height=440)
-            fig_bi.update_yaxes(title="Pourcentage (%)", range=[0, 100])
+            fig_bi  = px.bar(
+                grouped, x="Pourcentage", y="X_cl", color="Y_cl", barmode="stack",
+                color_discrete_sequence=BI_SEQUENCE,
+            )
+            fig_bi.update_layout(title=f"Classes de {var_x_label} × classes de {var_y_label}")
+            fig_bi.update_traces(
+                texttemplate="%{x:.1f}%",
+                textposition="inside",
+                textfont_color="#ffffff",
+                textfont_size=11,
+                cliponaxis=False,
+            )
+            height = max(420, 34 * grouped["X_cl"].nunique() + 120)
+            style_stacked_figure(fig_bi, height=height)
+            fig_bi.update_xaxes(title="Pourcentage (%)", range=[0, 100])
+            fig_bi.update_yaxes(title="", automargin=True)
             st.plotly_chart(fig_bi, use_container_width=True)
             table_pct = ct_pct.copy()
 
         elif num_x and not num_y:
-            tmp = df[[var_x, var_y]].copy()
+            tmp = df_bi[[var_x, var_y]].copy()
             tmp[var_x] = pd.to_numeric(tmp[var_x], errors="coerce")
             tmp = tmp.dropna(subset=[var_x, var_y])
             tmp["X_cl"] = pd.qcut(tmp[var_x], q=5, duplicates="drop").astype(str)
             ct     = pd.crosstab(tmp["X_cl"], tmp[var_y].astype(str))
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
+            if var_y in Q_COLS:
+                ct_pct = ct_pct.reindex(columns=LIKERT_ORDER)
             grouped = ct_pct.reset_index().melt(id_vars="X_cl", var_name=var_y, value_name="Pourcentage")
-            fig_bar = px.bar(grouped, x="X_cl", y="Pourcentage", color=var_y, barmode="group",
-                            title=f"Classes de {var_x_label} × {var_y_label}")
-            fig_bar.update_traces(texttemplate="%{y:.1f}%", textposition="auto", cliponaxis=False)
-            style_bar_figure(fig_bar, height=420)
-            fig_bar.update_yaxes(title="Pourcentage (%)", range=[0, 100])
+            cat_orders = {"X_cl": sorted(grouped["X_cl"].unique())}
+            if var_y in Q_COLS:
+                cat_orders[var_y] = LIKERT_ORDER
+            fig_bar = px.bar(
+                grouped, x="Pourcentage", y="X_cl", color=var_y, barmode="stack",
+                color_discrete_sequence=BI_SEQUENCE, category_orders=cat_orders,
+            )
+            fig_bar.update_layout(title=f"Classes de {var_x_label} × {var_y_label}")
+            fig_bar.update_traces(
+                texttemplate="%{x:.1f}%",
+                textposition="inside",
+                textfont_color="#ffffff",
+                textfont_size=11,
+                cliponaxis=False,
+            )
+            height = max(420, 34 * grouped["X_cl"].nunique() + 120)
+            style_stacked_figure(fig_bar, height=height)
+            fig_bar.update_xaxes(title="Pourcentage (%)", range=[0, 100])
+            fig_bar.update_yaxes(title="", automargin=True)
             st.plotly_chart(fig_bar, use_container_width=True)
             table_pct = ct_pct.copy()
 
         elif not num_x and num_y:
-            tmp = df[[var_x, var_y]].copy()
+            tmp = df_bi[[var_x, var_y]].copy()
             tmp[var_y] = pd.to_numeric(tmp[var_y], errors="coerce")
             tmp = tmp.dropna(subset=[var_x, var_y])
             tmp["Y_cl"] = pd.qcut(tmp[var_y], q=5, duplicates="drop").astype(str)
             ct     = pd.crosstab(tmp[var_x].astype(str), tmp["Y_cl"])
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
+            if var_x in Q_COLS:
+                ct_pct = ct_pct.reindex(index=LIKERT_ORDER)
             grouped = ct_pct.reset_index().melt(id_vars=var_x, var_name="Y_cl", value_name="Pourcentage")
-            fig_bar = px.bar(grouped, x=var_x, y="Pourcentage", color="Y_cl", barmode="group",
-                            title=f"{var_x_label} × classes de {var_y_label}")
-            fig_bar.update_traces(texttemplate="%{y:.1f}%", textposition="auto", cliponaxis=False)
-            style_bar_figure(fig_bar, height=420)
-            fig_bar.update_yaxes(title="Pourcentage (%)", range=[0, 100])
+            cat_orders = {"Y_cl": sorted(grouped["Y_cl"].unique())}
+            if var_x in Q_COLS:
+                cat_orders[var_x] = LIKERT_ORDER
+            fig_bar = px.bar(
+                grouped, x="Pourcentage", y=var_x, color="Y_cl", barmode="stack",
+                color_discrete_sequence=BI_SEQUENCE, category_orders=cat_orders,
+            )
+            fig_bar.update_layout(title=f"{var_x_label} × classes de {var_y_label}")
+            fig_bar.update_traces(
+                texttemplate="%{x:.1f}%",
+                textposition="inside",
+                textfont_color="#ffffff",
+                textfont_size=11,
+                cliponaxis=False,
+            )
+            height = max(420, 34 * grouped[var_x].nunique() + 120)
+            style_stacked_figure(fig_bar, height=height)
+            fig_bar.update_xaxes(title="Pourcentage (%)", range=[0, 100])
+            fig_bar.update_yaxes(title="", automargin=True)
             st.plotly_chart(fig_bar, use_container_width=True)
             table_pct = ct_pct.copy()
 
         else:
-            ct     = pd.crosstab(df[var_x].astype(str), df[var_y].astype(str))
+            ct     = pd.crosstab(df_bi[var_x].astype(str), df_bi[var_y].astype(str))
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
+            if var_x in Q_COLS:
+                ct_pct = ct_pct.reindex(index=LIKERT_ORDER)
+            if var_y in Q_COLS:
+                ct_pct = ct_pct.reindex(columns=LIKERT_ORDER)
             grouped = ct_pct.reset_index().melt(id_vars=var_x, var_name=var_y, value_name="Pourcentage")
-            fig_group = px.bar(grouped, x=var_x, y="Pourcentage", color=var_y, barmode="group",
-                            title=f"{var_x_label} × {var_y_label}")
-            fig_group.update_traces(texttemplate="%{y:.1f}%", textposition="auto", cliponaxis=False)
-            style_bar_figure(fig_group, height=420)
-            fig_group.update_yaxes(title="Pourcentage (%)", range=[0, 100])
+            cat_orders = {}
+            if var_x in Q_COLS:
+                cat_orders[var_x] = LIKERT_ORDER
+            if var_y in Q_COLS:
+                cat_orders[var_y] = LIKERT_ORDER
+            fig_group = px.bar(
+                grouped, x="Pourcentage", y=var_x, color=var_y, barmode="stack",
+                color_discrete_sequence=BI_SEQUENCE, category_orders=cat_orders,
+            )
+            fig_group.update_layout(title=f"{var_x_label} × {var_y_label}")
+            fig_group.update_traces(
+                texttemplate="%{x:.1f}%",
+                textposition="inside",
+                textfont_color="#ffffff",
+                textfont_size=11,
+                cliponaxis=False,
+            )
+            height = max(420, 34 * grouped[var_x].nunique() + 120)
+            style_stacked_figure(fig_group, height=height)
+            fig_group.update_xaxes(title="Pourcentage (%)", range=[0, 100])
+            fig_group.update_yaxes(title="", automargin=True)
             st.plotly_chart(fig_group, use_container_width=True)
             table_pct = ct_pct.copy()
 
