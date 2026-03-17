@@ -1536,7 +1536,7 @@ def _plot_bivariate_stacked(ct: pd.DataFrame, title: str, subdomain_label: str =
 
 st.set_page_config(
     page_title="Tableau d'analyse COPSOQ",
-    page_icon=":busts_in_silhouette:",
+    page_icon="📋",
     layout="wide",
     initial_sidebar_state="expanded",
 )
