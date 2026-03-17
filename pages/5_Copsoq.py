@@ -1021,6 +1021,18 @@ div[data-testid="stColumn"] > div { background: #ffffff; border-radius: 14px; }
   .rps-line { font-size: 13px; }
   .rps-interpret-label { font-size: 13px; }
 }
+/* Force la Sidebar en blanc pur */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #E4F0FB; /* Petite bordure pour séparer du contenu */
+    }
+
+    /* Optionnel : Ajuste la couleur du texte dans la sidebar pour qu'il soit bien noir */
+    [data-testid="stSidebar"] .stMarkdown, 
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stText {
+        color: #0F2340 !important;
+    }
 """
 
 def load_css() -> None:
