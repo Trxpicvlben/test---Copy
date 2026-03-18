@@ -90,22 +90,30 @@ QUESTION_LABELS = {
 # ============================================================
 st.markdown(
     '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">'
-    '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,700&display=swap" rel="stylesheet">',
+    '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,400;1,9..144,600&display=swap" rel="stylesheet">',
     unsafe_allow_html=True,
 )
 st.markdown(
     """
     <style>
     :root{
+    --bg-soft: #eef2f7;
+    --card:    #ffffff;
+    --text:    #2f3d55;
+    --accent:  #2f66b3;
+    --border:  #dde5f2;
     --ink:#24395F; --muted:#6B7EA6; --blue:#3D74D7; --pink:#E35DA8;
     --orange:#E98A2F; --teal:#22B8B2; --green:#39B56A; --danger:#E25555;
-    --card:#FFFFFF; --line:#D8E2F0; --shadow:0 10px 24px rgba(35,51,80,0.08);
+    --line:#D8E2F0; --shadow:0 10px 24px rgba(35,51,80,0.08);
     }
-    html,body,[class*="css"]{font-family:Manrope,sans-serif!important;color:#0F172A}
+    html,body,[class*="css"],.stApp{font-family:'Plus Jakarta Sans',sans-serif!important;color:#0F172A}
     .main{background:#f4f6fb!important}
     .block-container{padding:1.25rem 1.6rem!important;max-width:1280px!important}
 
-    .stApp{background:#f4f6fb;color:var(--ink);}
+    .stApp{
+        background: linear-gradient(180deg, #f4f6fb 0%, var(--bg-soft) 100%);
+        color: var(--text);
+    }
     [data-testid="metric-container"]{background:white;border-radius:14px;padding:1.1rem 1.2rem;border:1px solid var(--line);box-shadow:var(--shadow);transition:all 0.2s}
     [data-testid="metric-container"]:hover{transform:translateY(-2px);border-color:#c9d8f5;box-shadow:0 10px 24px rgba(39,63,122,0.12)}
     [data-testid="stMetricLabel"] p{font-size:0.72rem!important;color:#6b7a99!important;text-transform:uppercase;letter-spacing:0.06em;font-weight:600!important}
@@ -127,8 +135,29 @@ st.markdown(
     .kpi-body{padding:10px 14px 10px 6px;}
     .klabel{color:#7688af;font-size:12px;letter-spacing:0.2px;margin-bottom:3px;}
     .kval{color:#223252;font-weight:800;font-size:34px;line-height:1;}
-    .section-title{font-family:"Playfair Display",serif;font-style:italic;font-size:22px;color:#1f2a44;margin:10px 0 12px;}
-    .section-title::after{content:"";display:block;width:86px;height:2px;background:#d04a4a;margin-top:6px;}
+    .section-title{
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        font-family: 'Fraunces', Georgia, serif !important;
+        font-size: 1.25rem !important;
+        font-style: italic !important;
+        font-weight: 400 !important;
+        color: #0F2340 !important;
+        margin: 1.6rem 0 1rem !important;
+        padding-bottom: 0.65rem !important;
+        border-bottom: 2px solid #dde5f2 !important;
+    }
+    .section-title::before{
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 22px;
+        background: linear-gradient(180deg, #2f66b3 0%, #4f8be4 100%);
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+    .section-title::after{ display:none !important; }
     .stress-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
     .stress-box{background:#f6f9ff;border:1px solid #dce7f7;border-radius:12px;text-align:center;padding:12px 8px;}
     .stress-box .v{font-size:28px;font-weight:800;}
@@ -148,18 +177,40 @@ st.markdown(
     .upload-note h3{margin:0 0 8px 0;color:#223559;font-size:22px;}
     .upload-note p{margin:0;color:#5f719a;}
     [data-testid="stMetric"]{background:#ffffff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);}
-    [data-baseweb="tab-list"]{gap:22px;margin-bottom:6px;border-bottom:1px solid #dfe7f2;padding-bottom:4px;}
-    [data-baseweb="tab"]{background:transparent;border:none;color:#6b7a99;padding:8px 2px;font-weight:600;}
-    [aria-selected="true"][data-baseweb="tab"]{color:#2f67c8;border-bottom:2px solid #2f67c8;}
+    [data-baseweb="tab-list"]{
+        background: #FFFFFF !important;
+        border-radius: 12px !important;
+        padding: 4px !important;
+        gap: 3px !important;
+        border: 1px solid #dde5f2 !important;
+        box-shadow: 0 2px 8px rgba(47,102,179,0.07) !important;
+    }
+    [data-baseweb="tab"]{
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        color: #6B88A8 !important;
+        border-radius: 9px !important;
+        padding: 0.5rem 1.4rem !important;
+        transition: all 0.2s !important;
+    }
+    [aria-selected="true"][data-baseweb="tab"]{
+        background: linear-gradient(135deg, #2f66b3, #4f8be4) !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        box-shadow: 0 3px 12px rgba(47,102,179,0.30) !important;
+    }
+    [data-baseweb="tab-highlight"],
+    [data-baseweb="tab-border"]{ display: none !important; }
     [data-testid="stSelectbox"]>div{border-radius:12px;border:1px solid var(--line);background:#ffffff;}
     [data-testid="stSelectbox"] input{color:#1f2a44;}
     [data-testid="stFileUploader"] section{border:1px dashed #d5dcea;border-radius:12px;background:#f6f8fc;}
     [data-testid="stFileUploader"] button{background:#ffffff;border:1px solid #d7e0ee;border-radius:10px;padding:0.3rem 0.9rem;font-weight:600;}
 
-    /* ── SIDEBAR style COPSOQ ── */
+    /* ── Sidebar blanche ── */
     [data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
-        border-right: 1px solid #E4F0FB !important;
+        border-right: 1px solid #dde5f2 !important;
     }
     [data-testid="stSidebar"] .stMarkdown,
     [data-testid="stSidebar"] label,
@@ -568,13 +619,8 @@ def construire_psy_gauge(valeur: float, titre: str, mode: str = "stress") -> go.
 
 
 # ============================================================
-# EN-TÊTE YODAN
+# EN-TÊTE
 # ============================================================
-# ── Topbar style COPSOQ ─────────────────────────────────────────────────────
-st.markdown(
-    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">',
-    unsafe_allow_html=True,
-)
 _col_top, _col_back = st.columns([9, 1])
 with _col_top:
     st.markdown(
@@ -585,8 +631,8 @@ with _col_top:
         'border-radius:10px;display:flex;align-items:center;justify-content:center;">'
         '<i class="fas fa-brain" style="color:white;font-size:15px;"></i></div>'
         '<div>'
-        '<div style="font-size:16px;font-weight:700;color:#1e293b;">Charge Mentale & Stress</div>'
-        f'<div style="font-size:11px;color:#64748b;margin-top:1px;">Suivi de la charge mentale, du risque d\'épuisement et de la capacité productive · {COMPANY}</div>'
+        '<div style="font-size:16px;font-weight:700;color:#1e293b;font-family:\'Plus Jakarta Sans\',sans-serif;">Charge Mentale & Stress</div>'
+        f'<div style="font-size:11px;color:#64748b;margin-top:1px;font-family:\'Plus Jakarta Sans\',sans-serif;">Suivi de la charge mentale, du risque d\'épuisement et de la capacité productive · {COMPANY}</div>'
         '</div></div>',
         unsafe_allow_html=True,
     )
@@ -597,21 +643,19 @@ with _col_back:
 # ============================================================
 # CHARGEMENT DES DONNÉES
 # ============================================================
-st.markdown("<div style='margin-top:2.5rem;'></div>", unsafe_allow_html=True)
+main_up = st.file_uploader(
+    "Charger un fichier Excel ou CSV",
+    type=["xlsx", "xls", "csv"],
+    help="Glissez-déposez ou cliquez pour sélectionner votre fichier de données.",
+    key="cm_main_uploader",
+)
+if main_up is not None:
+    b = main_up.read()
+    if b:
+        st.session_state["cm_file_bytes"] = b
+        st.session_state["cm_file_name"]  = main_up.name
 
 if "cm_file_bytes" not in st.session_state:
-    main_up = st.file_uploader(
-        "Charger un fichier Excel ou CSV",
-        type=["xlsx", "xls", "csv"],
-        help="Glissez-déposez ou cliquez pour sélectionner votre fichier de données.",
-        key="cm_main_uploader",
-    )
-    if main_up is not None:
-        b = main_up.read()
-        if b:
-            st.session_state["cm_file_bytes"] = b
-            st.session_state["cm_file_name"]  = main_up.name
-            st.rerun()
     st.info("Veuillez charger un fichier de données (Excel ou CSV) pour démarrer l'analyse.")
     st.stop()
 

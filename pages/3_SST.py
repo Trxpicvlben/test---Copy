@@ -22,12 +22,89 @@ st.set_page_config(
 # CSS PERSONNALISÉ
 # ===============================
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,400;1,9..144,600&display=swap" rel="stylesheet">
 <style>
+    /* ── Variables ── */
+    :root {
+        --bg-soft:  #eef2f7;
+        --card:     #ffffff;
+        --text:     #2f3d55;
+        --accent:   #2f66b3;
+        --border:   #dde5f2;
+    }
+
+    /* ── Base typographie : Plus Jakarta Sans ── */
+    html, body, [class*="css"], .stApp {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+
+    .stApp {
+        background: linear-gradient(180deg, #f4f6fb 0%, var(--bg-soft) 100%);
+        color: var(--text);
+    }
+
     /* Style général */
     .main > div {
         padding: 0rem 1rem;
     }
-    
+
+    /* ── Grands titres de section : Fraunces italic (style COPSOQ) ── */
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        font-family: 'Fraunces', Georgia, serif !important;
+        font-size: 1.25rem !important;
+        font-style: italic !important;
+        font-weight: 400 !important;
+        color: #0F2340 !important;
+        margin: 1.6rem 0 1rem !important;
+        padding-bottom: 0.65rem !important;
+        border-bottom: 2px solid #dde5f2 !important;
+    }
+
+    .section-title::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 22px;
+        background: linear-gradient(180deg, #2f66b3 0%, #4f8be4 100%);
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    /* ── Onglets style COPSOQ ── */
+    [data-baseweb="tab-list"] {
+        background: #FFFFFF !important;
+        border-radius: 12px !important;
+        padding: 4px !important;
+        gap: 3px !important;
+        border: 1px solid #dde5f2 !important;
+        box-shadow: 0 2px 8px rgba(47,102,179,0.07) !important;
+    }
+
+    [data-baseweb="tab"] {
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 0.88rem !important;
+        color: #6B88A8 !important;
+        border-radius: 9px !important;
+        padding: 0.5rem 1.4rem !important;
+        transition: all 0.2s !important;
+    }
+
+    [aria-selected="true"][data-baseweb="tab"] {
+        background: linear-gradient(135deg, #2f66b3, #4f8be4) !important;
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        box-shadow: 0 3px 12px rgba(47,102,179,0.30) !important;
+    }
+
+    [data-baseweb="tab-highlight"],
+    [data-baseweb="tab-border"] {
+        display: none !important;
+    }
+
     /* Conteneur du radar */
     .radar-container {
         background-color: white;
@@ -38,7 +115,7 @@ st.markdown("""
         display: flex;
         justify-content: center;
     }
-    
+
     /* Titre compact */
     .compact-title {
         background-color: #2c3e50;
@@ -49,8 +126,9 @@ st.markdown("""
         font-size: 1.5rem;
         font-weight: bold;
         text-align: center;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
-    
+
     /* Points d'amélioration en colonnes */
     .non-questions-box {
         background-color: #f8d7da;
@@ -59,12 +137,14 @@ st.markdown("""
         margin-bottom: 10px;
         border-radius: 5px;
         font-size: 0.9rem;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
     .non-questions-box h5 {
         margin-top: 0;
         margin-bottom: 8px;
         color: #721c24;
         font-size: 1rem;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
     .non-questions-box ul {
         margin: 0;
@@ -74,7 +154,7 @@ st.markdown("""
         margin-bottom: 8px;
         line-height: 1.4;
     }
-    
+
     .no-non-message {
         font-style: italic;
         color: #27ae60;
@@ -83,18 +163,31 @@ st.markdown("""
         font-weight: bold;
         background-color: #d4edda;
         border-radius: 5px;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
-    
+
     /* Cacher les éléments inutiles */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    
+
+    /* ── Sidebar blanche ── */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #dde5f2;
+    }
+    [data-testid="stSidebar"] .stMarkdown,
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stText {
+        color: #0F2340 !important;
+    }
+
     /* Style pour la liste des principes */
     .principles-list {
         background-color: #f8f9fa;
         padding: 20px;
         border-radius: 8px;
         font-size: 1rem;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
     .principles-list ol {
         column-count: 2;
@@ -108,11 +201,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ════════════════════════════════════════════════════════════
-# TOPBAR YODAN
+# TOPBAR SST
 # ════════════════════════════════════════════════════════════
 st.markdown(
-    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">'
-    '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">',
+    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">',
     unsafe_allow_html=True
 )
 _col_top, _col_back = st.columns([9, 1])
@@ -121,37 +213,22 @@ with _col_top:
         '<div style="display:flex;align-items:center;gap:12px;background:white;border-radius:12px;'
         'padding:14px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),'
         '0 4px 12px rgba(30,64,175,0.08);border:1px solid #e8edf5;">'
-        '<div style="width:38px;height:38px;background:linear-gradient(135deg,#7c3aed,#a78bfa);'
+        '<div style="width:38px;height:38px;background:linear-gradient(135deg,#0369a1,#38bdf8);'
         'border-radius:10px;display:flex;align-items:center;justify-content:center;">'
-        '<i class="fas fa-spider" style="color:white;font-size:15px;"></i></div>'
+        '<i class="fas fa-hard-hat" style="color:white;font-size:15px;"></i></div>'
         '<div>'
-        '<div style="font-size:16px;font-weight:700;color:#1e293b;">Toile SST — Santé &amp; Sécurité au Travail</div>'
-        '<div style="font-size:11px;color:#64748b;margin-top:1px;">Analyse des risques SST · Pahaliah &amp; Fils</div>'
+        '<div style="font-size:16px;font-weight:700;color:#1e293b;font-family:\'Plus Jakarta Sans\',sans-serif;">SST — Santé &amp; Sécurité au Travail</div>'
+        '<div style="font-size:11px;color:#64748b;margin-top:1px;font-family:\'Plus Jakarta Sans\',sans-serif;">Analyse des niveaux de maturité SST · Pahaliah &amp; Fils</div>'
         '</div></div>',
         unsafe_allow_html=True
     )
 with _col_back:
-    st.write("")
-    st.write("")
     if st.button("← Accueil", key="back_home_sst", use_container_width=True):
         st.switch_page("app.py")
 
 # ════════════════════════════════════════════════════════════
 # IMPORT FICHIER
 # ════════════════════════════════════════════════════════════
-with st.sidebar:
-    st.header("📂 Données")
-    _sst_sidebar_up = st.file_uploader(
-        "Charger un fichier Excel ou CSV",
-        type=["xlsx", "xls", "csv"],
-        help="Glissez-déposez ou cliquez pour sélectionner votre fichier de données.",
-        key="sst_sidebar_uploader",
-    )
-if _sst_sidebar_up is not None:
-    _b = _sst_sidebar_up.read()
-    if _b:
-        st.session_state["sst_file_bytes"] = _b
-        st.session_state["sst_file_name"] = _sst_sidebar_up.name
 
 # ===============================
 # CHARGEMENT DES DONNÉES
@@ -565,20 +642,20 @@ def get_non_questions(row_data, principe, questions_par_principe):
 # ════════════════════════════════════════════════════════════
 # CHARGEMENT ET PRÉPARATION DES DONNÉES
 # ════════════════════════════════════════════════════════════
+_main_up = st.file_uploader(
+    "Charger un fichier Excel ou CSV",
+    type=["xlsx", "xls", "csv"],
+    help="Glissez-déposez ou cliquez pour sélectionner votre fichier de données.",
+    key="sst_main_uploader",
+)
+if _main_up is not None:
+    _b = _main_up.read()
+    if _b:
+        st.session_state["sst_file_bytes"] = _b
+        st.session_state["sst_file_name"] = _main_up.name
+
 if "sst_file_bytes" not in st.session_state:
     st.info("Veuillez charger un fichier de données (Excel ou CSV) pour démarrer l'analyse.")
-    _main_up = st.file_uploader(
-        "Ou importez votre fichier ici",
-        type=["xlsx", "xls", "csv"],
-        help="Glissez-déposez ou cliquez pour sélectionner votre fichier de données.",
-        key="sst_main_uploader",
-    )
-    if _main_up is not None:
-        _b = _main_up.read()
-        if _b:
-            st.session_state["sst_file_bytes"] = _b
-            st.session_state["sst_file_name"] = _main_up.name
-            st.rerun()
     st.stop()
 
 _fn = st.session_state["sst_file_name"]
