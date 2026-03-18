@@ -621,6 +621,7 @@ def construire_psy_gauge(valeur: float, titre: str, mode: str = "stress") -> go.
 # ============================================================
 # EN-TÊTE
 # ============================================================
+st.markdown("<div style='margin-top:5rem;'></div>", unsafe_allow_html=True)
 _col_top, _col_back = st.columns([9, 1])
 with _col_top:
     st.markdown(
