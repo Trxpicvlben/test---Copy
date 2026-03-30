@@ -1,43 +1,36 @@
-# =============================================================================
-# DASHBOARD QVT — Qualité de Vie au Travail
-# Inspiré du modèle Karasek · 2 onglets
-# Lancer avec : streamlit run dashboard_qvt.py
-# Dépendances  : pip install streamlit plotly pandas numpy openpyxl
-# =============================================================================
+# DASHBOARD QVT — version stylée (Karasek look)
+# Lancer : streamlit run 1.py
+# Dépendances : pip install streamlit plotly pandas numpy openpyxl
 
-import io
 import re
+import sys
+import io
+import base64
 import unicodedata
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
+import textwrap
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CONFIG PAGE
-# ─────────────────────────────────────────────────────────────────────────────
-st.set_page_config(
-    layout="wide",
-    page_title="QVT Dashboard",
-    page_icon="❤️",
-    initial_sidebar_state="expanded",
-)
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PALETTE & CONSTANTES
-# ─────────────────────────────────────────────────────────────────────────────
+# ------------------------------
+# Palette & constantes (abrégées)
+# ------------------------------
 C = {
     "bg":        "#F0F7FF",
     "card":      "#FFFFFF",
-    "text":      "#0F2340",
-    "muted":     "#6B88A8",
-    "border":    "#D6E8F7",
-    "blue":      "#38A3E8",
-    "orange":    "#F97316",
-    "green":     "#22C55E",
-    "red":       "#EF4444",
+    "text":      "#0F2633",    # neutral dark for good contrast
+    "muted":     "#7F98A8",    # mid-muted gray-blue
+    "border":    "#E6EEF6",
+    # Mid-tone palette (neither vivid nor washed)
+    "blue":      "#4A90E2",
+    "orange":    "#F39C6B",
+    "green":     "#66BB6A",
+    "red":       "#E45757",
     "purple":    "#A78BFA",
     "dark_red":  "#FD0000",
     "light_red": "#E85D35",
@@ -47,10 +40,11 @@ C = {
 
 RESPONSE_ORDER  = ["Très insatisfait", "Insatisfait", "Satisfait", "Très satisfait"]
 RESPONSE_COLORS = {
-    "Très insatisfait": C["dark_red"],
-    "Insatisfait":      C["light_red"],
-    "Satisfait":        C["light_grn"],
-    "Très satisfait":   C["dark_grn"],
+    # mid-tone response colors
+    "Très insatisfait": C["red"],            # mid red
+    "Insatisfait":      "#F29A7A",           # mid orange
+    "Satisfait":        "#A6D8A6",           # soft green
+    "Très satisfait":   "#3B8F5A",           # mid-dark green
 }
 
 QUESTIONS = [
@@ -121,171 +115,138 @@ SOCIO_CANDIDATES = [
     "Departement", "Département", "Direction",
     "Poste de travail", "Fonction",
     "Genre",
+    "Service", "Situation_matrimoniale",
     "Categorie_IMC", "Classe_Anciennete", "TrancheAge",
 ]
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CSS GLOBAL
-# ─────────────────────────────────────────────────────────────────────────────
-def inject_css():
-    st.markdown("""
-<style>
+# ------------------------------
+# CSS embarqué (Karasek look)
+# ------------------------------
+def _get_inline_css() -> str:
+    # (utilise la feuille CSS du modèle — réduit pour lisibilité mais contient les classes principales)
+    return """
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,400;1,9..144,600&display=swap');
+:root{--bg-soft:#eef2f7;--card:#ffffff;--text:#2f3d55;--border:#dde5f2}
+html,body,[class*="css"],.stApp{font-family:'Plus Jakarta Sans',sans-serif!important}
+.stApp{background:linear-gradient(180deg,#f4f6fb 0%,var(--bg-soft) 100%);color:var(--text)}
+.section-title{display:flex;align-items:center;gap:0.7rem;font-family:'Fraunces',Georgia,serif!important;font-style:italic!important;font-size:1.25rem!important;color:#0F2340!important;margin:1.6rem 0 1rem!important;padding-bottom:0.65rem!important;border-bottom:2px solid #dde5f2!important}
+.section-title::before{content:'';display:inline-block;width:4px;height:22px;background:linear-gradient(180deg,#2f66b3 0%,#4f8be4 100%);border-radius:2px;flex-shrink:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:8px}
+.card-container{background:#fff;padding:20px;border-radius:14px;border:1px solid #f0f2f6;box-shadow:0 6px 20px rgba(0,0,0,0.04);text-align:center}
+.kpi-card,.gauge-card{background:#fff;border:1px solid #dde5f2;border-radius:12px;padding:12px}
+.kpi-label{font-size:0.72rem;color:#6B88A8;text-transform:uppercase;font-weight:700;margin-bottom:6px}
+.kpi-value{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:800}
+.badge{display:inline-block;font-size:0.64rem;font-weight:700;padding:0.18rem 0.65rem;border-radius:999px}
+.badge-red{background:#FEE2E2;color:#B91C1C}.badge-green{background:#DCFCE7;color:#15803D}.badge-blue{background:rgba(56,163,232,0.1);color:#38A3E8}
+.back-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:linear-gradient(135deg,#2f66b3,#4f8be4);color:#ffffff!important;font-weight:700;text-decoration:none!important;box-shadow:0 6px 18px rgba(47,102,179,0.12);border:1px solid rgba(79,139,228,0.12)}
+.back-btn:hover{filter:brightness(0.95);box-shadow:0 8px 22px rgba(47,102,179,0.14)}
+.back-btn:focus{outline:none;box-shadow:0 8px 22px rgba(47,102,179,0.14)}
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; color: #0F2340; }
+/* Shared spacing for risk/strength items (applies to both columns) */
+.q-items{margin-top:20px}
+.q-items .item-row{margin-bottom:22px;padding:12px 16px;border-radius:10px;background:#fff;box-shadow:0 6px 18px rgba(16,24,40,0.03);}
 
-.stApp {
-    background-color: #F0F7FF;
-    background-image:
-        radial-gradient(ellipse 1000px 500px at 10% -5%, rgba(56,163,232,0.12) 0%, transparent 55%),
-        radial-gradient(ellipse 600px 400px at 90% 105%, rgba(249,115,22,0.08) 0%, transparent 50%);
-}
-.main .block-container { padding-top: 0.75rem; padding-left: 2rem; padding-right: 2rem; max-width: 1500px; }
-
-/* SIDEBAR */
-[data-testid="stSidebar"] { background: #FFFFFF !important; border-right: 1px solid #D0E8F8 !important; }
-
-/* HERO */
-.hero-band {
-    background: linear-gradient(135deg, #FFFFFF 0%, #F5F9FF 100%);
-    border: 1px solid #D0E8F8; border-radius: 20px; padding: 1.4rem 2rem 1.3rem;
-    margin-bottom: 0.9rem; position: relative; overflow: hidden;
-    box-shadow: 0 4px 24px rgba(56,163,232,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
-}
-.hero-band::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, #38A3E8, #F97316, #38A3E8);
-    background-size: 200% 100%; animation: shimmer 4s linear infinite;
-}
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-.hero-inner { display: flex; align-items: center; justify-content: space-between; }
-.hero-wordmark h1 {
-    font-family: 'Fraunces', Georgia, serif; font-size: 2rem; font-weight: 600;
-    font-style: italic; color: #0F2340; letter-spacing: -0.02em; margin: 0; line-height: 1;
-}
-.hero-wordmark h1 span { color: #38A3E8; }
-.hero-subtitle { font-size: 0.86rem; color: #4E6A88; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; margin-top: 0.4rem; }
-.hero-chip {
-    display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.65rem;
-    font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #F97316;
-    background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.25);
-    border-radius: 999px; padding: 0.3rem 0.8rem;
-}
-.hero-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #F97316; animation: blink 2s ease-in-out infinite; }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-/* SECTION TITLE */
-.section-title {
-    display: flex; align-items: center; gap: 0.7rem; font-family: 'Fraunces', serif;
-    font-size: 1.2rem; font-style: italic; font-weight: 400; color: #0F2340;
-    margin: 1.8rem 0 1rem; padding-bottom: 0.65rem; border-bottom: 2px solid #E4F0FB;
-}
-.section-title::before {
-    content: ''; display: inline-block; width: 4px; height: 20px;
-    background: linear-gradient(180deg, #38A3E8 0%, #F97316 100%); border-radius: 2px; flex-shrink: 0;
+/* Tab styling inspired from 2.py (data-baseweb selectors) */
+[data-baseweb="tab-list"] {
+    background: #FFFFFF !important;
+    border-radius: 12px !important;
+    padding: 4px !important;
+    gap: 3px !important;
+    border: 1px solid #dde5f2 !important;
+    box-shadow: 0 2px 8px rgba(47,102,179,0.07) !important;
 }
 
-/* KPI CARD */
-.kpi-card {
-    background: #FFFFFF; border: 1px solid #D6E8F7; border-radius: 16px;
-    padding: 1.3rem 1.2rem 1.1rem; text-align: center;
-    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-    animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-    box-shadow: 0 2px 8px rgba(56,163,232,0.06); position: relative; overflow: hidden;
+[data-baseweb="tab"] {
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.88rem !important;
+    color: #6B88A8 !important;
+    border-radius: 9px !important;
+    padding: 0.5rem 1.4rem !important;
+    transition: all 0.18s !important;
 }
-.kpi-card::after {
-    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, #38A3E8, #F97316); opacity: 0; transition: opacity 0.22s;
+
+[aria-selected="true"][data-baseweb="tab"] {
+    background: linear-gradient(135deg, #2f66b3, #4f8be4) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    box-shadow: 0 3px 12px rgba(47,102,179,0.30) !important;
 }
-.kpi-card:hover { transform: translateY(-4px); border-color: #AAD5F5; box-shadow: 0 10px 32px rgba(56,163,232,0.15); }
-.kpi-card:hover::after { opacity: 1; }
-.kpi-label { font-size: 0.8rem; color: #4E6A88 !important; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 700; margin-bottom: 0.55rem; display: block; }
-.kpi-icon { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.55rem; }
-.kpi-value { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.35rem; font-weight: 800; color: #0F2340 !important; line-height: 1; letter-spacing: -0.04em; }
-@keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 
-/* GAUGE CARD */
-.gauge-card {
-    background: #FFFFFF; border: 1px solid #D6E8F7; border-radius: 18px;
-    padding: 1.6rem 1.2rem 1.3rem; text-align: center;
-    transition: transform 0.22s ease, box-shadow 0.22s ease;
-    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-    box-shadow: 0 2px 8px rgba(56,163,232,0.06); height: 100%; position: relative; overflow: hidden;
+[data-baseweb="tab-highlight"],
+[data-baseweb="tab-border"] {
+    display: none !important;
 }
-.gauge-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #38A3E8, #F97316); opacity: 0; transition: opacity 0.22s; }
-.gauge-card:hover { transform: translateY(-4px); border-color: #AAD5F5; box-shadow: 0 12px 36px rgba(56,163,232,0.15); }
-.gauge-card:hover::before { opacity: 1; }
-.gauge-semi-wrap { position: relative; width: 180px; height: 90px; margin: 0 auto 0.7rem; overflow: hidden; }
-.gauge-semi-bg   { position: absolute; width: 180px; height: 180px; border-radius: 50%; background: #EDF5FD; top: 0; left: 0; }
-.gauge-semi-fill {
-    position: absolute; width: 180px; height: 180px; border-radius: 50%; top: 0; left: 0;
-    background: conic-gradient(from 270deg, var(--gauge-color,#38A3E8) 0deg, var(--gauge-color,#38A3E8) calc(var(--g,0deg)), transparent calc(var(--g,0deg)));
-}
-.gauge-semi-inner { position: absolute; width: 112px; height: 112px; background: #FFFFFF; border-radius: 50%; top: 34px; left: 34px; box-shadow: inset 0 2px 8px rgba(56,163,232,0.06); }
-.gauge-value    { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.9rem; font-weight: 800; color: #0F2340; line-height: 1; letter-spacing: -0.04em; }
-.gauge-pct      { font-size: 1rem; font-weight: 500; color: #6B88A8; }
-.gauge-label    { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.96rem; font-weight: 700; color: #0F2340; margin-top: 0.55rem; }
-.gauge-sublabel { font-size: 0.84rem; color: #4E6A88; margin-top: 0.25rem; line-height: 1.5; }
-.gauge-badge    { display: inline-block; margin-top: 0.7rem; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.22rem 0.85rem; border-radius: 999px; }
-.gauge-badge.good  { background: #DCFCE7; color: #15803D; }
-.gauge-badge.alert { background: #FEE2E2; color: #B91C1C; }
+"""
 
-/* PROGRESS */
-.prog-track { background: #EDF5FD; border-radius: 999px; height: 7px; overflow: hidden; margin-top: 5px; }
-.prog-fill  { height: 7px; border-radius: 999px; width: 0%; transition: width 1.1s cubic-bezier(0.4,0,0.2,1); }
-.panel-relief { background: #FFFFFF; border: 1px solid #D6E8F7; border-radius: 16px; padding: 0.9rem 1rem 0.6rem; box-shadow: 0 3px 14px rgba(56,163,232,0.08); }
+def load_css() -> None:
+    st.markdown(f"<style>{_get_inline_css()}</style>", unsafe_allow_html=True)
 
-/* WORKZONE / LS CARDS */
-.workzone-card, .ls-card {
-    background: #FFFFFF; border: 1px solid #D6E8F7; border-radius: 14px;
-    padding: 1.1rem 1rem; text-align: center; transition: transform 0.2s, box-shadow 0.2s;
-    animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
-    box-shadow: 0 2px 6px rgba(56,163,232,0.05);
-}
-.workzone-card:hover, .ls-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(56,163,232,0.12); }
+# Query param helpers (compatibility across Streamlit versions)
+def get_query_params_safe():
+    """Return query params using experimental_ or stable API depending on availability."""
+    if hasattr(st, "experimental_get_query_params"):
+        try:
+            return st.query_params()
+        except Exception:
+            pass
+    if hasattr(st, "get_query_params"):
+        try:
+            return st.get_query_params()
+        except Exception:
+            pass
+    return {}
 
-/* TABS */
-[data-baseweb="tab-list"] { background: #FFFFFF !important; border-radius: 12px; padding: 4px; gap: 3px; border: 1px solid #D0E8F8; box-shadow: 0 2px 8px rgba(56,163,232,0.07); }
-[data-baseweb="tab"] { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 600 !important; font-size: 0.88rem !important; color: #6B88A8 !important; border-radius: 9px !important; padding: 0.5rem 1.4rem !important; transition: all 0.2s !important; }
-[aria-selected="true"][data-baseweb="tab"] { background: linear-gradient(135deg, #38A3E8, #2B8FD0) !important; color: #FFFFFF !important; font-weight: 700 !important; box-shadow: 0 3px 12px rgba(56,163,232,0.3) !important; }
-[data-baseweb="tab-highlight"], [data-baseweb="tab-border"] { display: none !important; }
+def set_query_params_safe(**params):
+    """Set query params using experimental_ or stable API depending on availability."""
+    if hasattr(st, "experimental_set_query_params"):
+        try:
+            return st.experimental_set_query_params(**params)
+        except Exception:
+            pass
+    if hasattr(st, "set_query_params"):
+        try:
+            return st.set_query_params(**params)
+        except Exception:
+            pass
+    return None
 
-/* SELECTS & BUTTONS */
-[data-baseweb="select"] > div { background-color: #FFFFFF !important; border-color: #C8DFF2 !important; border-radius: 10px !important; color: #0F2340 !important; }
-.stButton > button { background: linear-gradient(135deg, #38A3E8, #2B8FD0) !important; border: none !important; color: #FFFFFF !important; border-radius: 10px !important; font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 700 !important; font-size: 0.8rem !important; letter-spacing: 0.02em !important; box-shadow: 0 3px 10px rgba(56,163,232,0.25) !important; transition: all 0.18s !important; }
-.stButton > button:hover { background: linear-gradient(135deg, #F97316, #EA6A0A) !important; box-shadow: 0 4px 16px rgba(249,115,22,0.3) !important; transform: translateY(-1px) !important; }
-
-/* PLOTLY */
-div[data-testid="stPlotlyChart"] { border: 1px solid #D6E8F7; border-radius: 12px; background: #FFFFFF; box-shadow: 0 4px 16px rgba(56,163,232,0.06); padding: 4px; }
-
-/* SCROLLBAR */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #EDF5FD; }
-::-webkit-scrollbar-thumb { background: #AAD5F5; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #38A3E8; }
-
-hr { border: none; border-top: 1px solid #E4F0FB; margin: 1rem 0; }
-@property --g { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-</style>
-""", unsafe_allow_html=True)
-
-# ─────────────────────────────────────────────────────────────────────────────
-# HELPERS — NORMALISATION COLONNES
-# ─────────────────────────────────────────────────────────────────────────────
+# ------------------------------
+# Helpers: normalisation & recodage
+# ------------------------------
 def normalize(text):
     t = str(text).strip().lower()
     t = unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode("ascii")
     return re.sub(r"[^a-z0-9]+", "", t)
 
-
 def find_col(df, target):
-    nt = normalize(target)
-    for col in df.columns:
-        if normalize(col) == nt:
-            return col
-    return None
+    """Find a column in dataframe using a robust normalized match.
 
+    Tries, in order: exact normalized match, startswith, contains, then
+    a close match using difflib. Returns the original column name or None.
+    """
+    import difflib
+    if df is None:
+        return None
+    nt = normalize(target)
+    # normalized -> original mapping
+    norm_map = {normalize(c): c for c in df.columns}
+    # exact
+    if nt in norm_map:
+        return norm_map[nt]
+    # startswith
+    for k, orig in norm_map.items():
+        if k.startswith(nt) or nt.startswith(k):
+            return orig
+    # contains
+    for k, orig in norm_map.items():
+        if nt in k or k in nt:
+            return orig
+    # fuzzy close match
+    close = difflib.get_close_matches(nt, list(norm_map.keys()), n=1, cutoff=0.75)
+    if close:
+        return norm_map[close[0]]
+    return None
 
 def recode_response(series):
     out = pd.Series(pd.NA, index=series.index, dtype="object")
@@ -305,7 +266,6 @@ def recode_response(series):
         out.loc[normed == k] = v
     return out
 
-
 def add_derived_columns(df):
     out = df.copy()
     age_col  = find_col(out, "Age")
@@ -313,69 +273,87 @@ def add_derived_columns(df):
     poids_col = find_col(out, "Poids")
     taille_col = find_col(out, "Taille")
     imc_col  = find_col(out, "IMC")
+    # additional socio columns will be detected and copied below
 
     if age_col and "TrancheAge" not in out.columns:
         age = pd.to_numeric(out[age_col], errors="coerce")
-        out["TrancheAge"] = pd.cut(
-            age, bins=[0, 20, 30, 40, 50, 60, np.inf],
-            labels=["<20", "20-30", "31-40", "41-50", "51-60", "60+"], right=False,
-        )
+        out["TrancheAge"] = pd.cut(age, bins=[0,20,30,40,50,60,np.inf],
+                                   labels=["<20","20-30","31-40","41-50","51-60","60+"], right=False)
     if anc_col and "Classe_Anciennete" not in out.columns:
         anc = pd.to_numeric(out[anc_col], errors="coerce")
-        out["Classe_Anciennete"] = pd.cut(
-            anc, bins=[0, 2, 5, 10, 20, np.inf],
-            labels=["0-2 ans", "3-5 ans", "6-10 ans", "11-20 ans", "21+ ans"],
-            include_lowest=True,
-        )
+        out["Classe_Anciennete"] = pd.cut(anc, bins=[0,2,5,10,20,np.inf],
+                                          labels=["0-2 ans","3-5 ans","6-10 ans","11-20 ans","21+ ans"], include_lowest=True)
     if poids_col and taille_col and "IMC" not in out.columns:
         p = pd.to_numeric(out[poids_col], errors="coerce")
         t = pd.to_numeric(out[taille_col], errors="coerce")
         out["IMC"] = np.round(p / (t / 100) ** 2, 1)
-        imc_col = "IMC"
-    if imc_col and "Categorie_IMC" not in out.columns:
-        imc_vals = pd.to_numeric(out.get(imc_col, pd.Series(dtype=float)), errors="coerce")
-        out["Categorie_IMC"] = pd.cut(
-            imc_vals, bins=[-np.inf, 18.5, 24.9, 29.9, np.inf],
-            labels=["Sous-poids", "Normal", "Surpoids", "Obésité"],
-        )
+    if (imc_col or "IMC" in out.columns) and "Categorie_IMC" not in out.columns:
+        imc_vals = pd.to_numeric(out.get(imc_col, out.get("IMC", pd.Series(dtype=float))), errors="coerce")
+        out["Categorie_IMC"] = pd.cut(imc_vals, bins=[-np.inf,18.5,24.9,29.9,np.inf],
+                                      labels=["Sous-poids","Normal","Surpoids","Obésité"])
+    # Ensure a standard set of socio columns exist (copy from detected variants)
+    standard_socio = [
+        "Taille", "Poids", "Departement", "Direction", "Anciennete",
+        "Service", "Poste de travail", "Age", "Genre", "Fonction", "Situation_matrimoniale"
+    ]
+    for std in standard_socio:
+        try:
+            found = find_col(out, std)
+            if found and std not in out.columns:
+                out[std] = out[found]
+        except Exception:
+            # be permissive; if anything goes wrong continue
+            continue
     return out
-
 
 def resolve_questions(df):
     return {q: find_col(df, q) for q in QUESTIONS if find_col(df, q)}
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# COMPOSANTS HTML
-# ─────────────────────────────────────────────────────────────────────────────
-def sec_title(text):
-    st.markdown(f'<div class="sec-title">{text}</div>', unsafe_allow_html=True)
-
+# ------------------------------
+# UI helpers (sec_title, kpi_card, gauges)
+# ------------------------------
+def sec_title(text: str) -> None:
+    st.markdown(f'<div class="section-title">{text}</div>', unsafe_allow_html=True)
 
 def kpi_card(label, value, color=C["blue"], suffix="", decimals=0, sub=""):
-    disp = f"{value:.{decimals}f}{suffix}"
-    sub_html = f'<div class="kpi-sub">{sub}</div>' if sub else ""
+    try:
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            disp = f"{value:.{decimals}f}{suffix}"
+        else:
+            disp = f"{value}{suffix}"
+    except Exception:
+        disp = str(value)
+    sub_html = f'<div class="kpi-sub" style="font-size:0.72rem;color:#9AAFBF;margin-top:6px">{sub}</div>' if sub else ""
     st.markdown(f"""
     <div class="kpi-card">
-        <div class="kpi-label">{label}</div>
-        <div class="kpi-value" style="color:{color};">{disp}</div>
-        {sub_html}
+      <div class="kpi-label">{label}</div>
+      <div class="kpi-value" style="color:{color};">{disp}</div>
+      {sub_html}
     </div>""", unsafe_allow_html=True)
 
+def semi_gauge(pct, color, label, sublabel, key="", badge_override=None):
+    """Rendu SVG d'une jauge semi-circulaire.
 
-def semi_gauge(pct, color, label, sublabel, key=""):
-    """Rendu SVG d'une jauge semi-circulaire."""
+    badge_override: optional tuple (badge_bg, badge_c, badge_t) to force the badge
+    (background color, text color, label). If None, the badge is derived from pct.
+    """
     pct = max(0.0, min(100.0, float(pct)))
     angle = pct / 100 * 180
     r, cx, cy = 68, 88, 78
     ex = cx + r * np.cos(np.radians(180 - angle))
     ey = cy - r * np.sin(np.radians(180 - angle))
     arc = f'M {cx-r} {cy} A {r} {r} 0 0 1 {ex:.2f} {ey:.2f}' if angle > 1 else ""
-    badge_bg, badge_c, badge_t = (
-        ("#DCFCE7", "#15803D", "Élevé")  if pct > 65 else
-        ("#FEF3C7", "#B45309", "Moyen")  if pct > 40 else
-        ("#FEE2E2", "#B91C1C", "Faible")
-    )
+    # Determine badge (or use override provided)
+    if badge_override is not None:
+        badge_bg, badge_c, badge_t = badge_override
+    else:
+        # Use green for Élevé; use red for both Moyen and Faible (per user request)
+        if pct > 65:
+            badge_bg, badge_c, badge_t = ("#DCFCE7", "#15803D", "Élevé")
+        elif pct > 40:
+            badge_bg, badge_c, badge_t = ("#FEE2E2", "#B91C1C", "Moyen")
+        else:
+            badge_bg, badge_c, badge_t = ("#FEE2E2", "#B91C1C", "Faible")
     st.markdown(f"""
     <div class="gauge-card">
         <svg width="176" height="96" style="display:block;margin:0 auto;">
@@ -396,36 +374,42 @@ def semi_gauge(pct, color, label, sublabel, key=""):
         </div>
     </div>""", unsafe_allow_html=True)
 
-
 def dual_status_bar(neg_pct, pos_pct, neg_color, pos_color):
-    """Barre compacte montrant l'équilibre insatisfaits / satisfaits."""
-    neg = max(0.0, neg_pct)
-    pos = max(0.0, pos_pct)
-    if neg + pos == 0:
-        return '<div style="height:6px;border-radius:999px;background:#E0E7EF;margin-top:0.4rem;"></div>'
-    return f"""
-    <div style="display:flex;height:6px;border-radius:999px;overflow:hidden;margin-top:0.4rem;">
-        <div style="flex:{neg:.2f};background:{neg_color};"></div>
-        <div style="flex:{pos:.2f};background:{pos_color};"></div>
-    </div>
-    """
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# GRAPHIQUES PLOTLY
-# ─────────────────────────────────────────────────────────────────────────────
+        """Return an HTML fragment showing negative/positive stacked bar with percentages."""
+        try:
+                n = max(0.0, float(neg_pct))
+        except Exception:
+                n = 0.0
+        try:
+                p = max(0.0, float(pos_pct))
+        except Exception:
+                p = 0.0
+        total = n + p
+        if total == 0:
+                return '<div style="height:8px;border-radius:8px;background:#E0E7EF;margin-top:6px"></div>'
+        # scale to 100
+        n_w = n / total * 100
+        p_w = p / total * 100
+        return f"""
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+            <div style="flex:1;background:#f1f5f9;border-radius:8px;overflow:hidden;height:12px;position:relative;">
+                <div style="width:{n_w:.2f}%;height:100%;background:{neg_color};float:left;"></div>
+                <div style="width:{p_w:.2f}%;height:100%;background:{pos_color};float:right;"></div>
+            </div>
+            <div style="min-width:70px;text-align:right;font-size:12px;color:{C['muted']};">
+                <strong style="color:{neg_color};">{n:.1f}%</strong> / <strong style="color:{pos_color};">{p:.1f}%</strong>
+            </div>
+        </div>
+        """
+# ------------------------------
+# Plotly helpers (small set)
+# ------------------------------
 LAYOUT_BASE = dict(
     plot_bgcolor="#FAFCFF",
     paper_bgcolor="rgba(0,0,0,0)",
     font=dict(family="Plus Jakarta Sans, sans-serif", color=C["text"], size=12),
     margin=dict(l=40, r=20, t=50, b=40),
-    xaxis=dict(showgrid=True, gridcolor="#EDF5FD", zeroline=False,
-               showline=True, linecolor=C["border"],
-               tickfont=dict(color=C["muted"], size=11)),
-    yaxis=dict(showgrid=True, gridcolor="#EDF5FD", zeroline=False,
-               showline=False, tickfont=dict(color=C["muted"], size=11)),
 )
-
 
 def apply_layout(fig, title="", height=None):
     upd = dict(**LAYOUT_BASE, title=dict(text=title, font=dict(family="DM Serif Display, serif", size=14, color=C["text"]), x=0.02))
@@ -434,38 +418,18 @@ def apply_layout(fig, title="", height=None):
     fig.update_layout(**upd)
     return fig
 
-
 def radar_chart(score_means: dict) -> go.Figure:
     dims  = list(score_means.keys())
     vals  = list(score_means.values())
+    if not dims:
+        return go.Figure()
     dims_ = dims + [dims[0]]
     vals_ = vals + [vals[0]]
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(
-        r=[2.5]*len(dims_), theta=dims_, fill="toself",
-        fillcolor="rgba(249,115,22,0.05)",
-        line=dict(color="rgba(249,115,22,0.35)", dash="dot", width=1.5),
-        name="Référence 2.5", hoverinfo="skip",
-    ))
-    fig.add_trace(go.Scatterpolar(
-        r=vals_, theta=dims_, fill="toself",
-        fillcolor="rgba(56,163,232,0.13)",
-        line=dict(color=C["blue"], width=2.5),
-        marker=dict(color=C["blue"], size=7, line=dict(color="white", width=2)),
-        name="Score moyen",
-        hovertemplate="<b>%{theta}</b><br>%{r:.2f}/4<extra></extra>",
-    ))
-    fig.update_layout(
-        polar=dict(
-            bgcolor="#FAFCFF",
-            angularaxis=dict(tickfont=dict(color=C["text"], size=10, family="Plus Jakarta Sans"), linecolor=C["border"], gridcolor="#EDF5FD"),
-            radialaxis=dict(visible=True, range=[1, 4], tickfont=dict(color=C["muted"], size=9), gridcolor="#EDF5FD", linecolor=C["border"]),
-        ),
-        paper_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Plus Jakarta Sans", color=C["text"]),
-        legend=dict(bgcolor="rgba(255,255,255,0.9)", bordercolor=C["border"], borderwidth=1, font=dict(size=11)),
-        height=380, margin=dict(l=60, r=60, t=40, b=40),
-    )
+    # Radar: plot only the measured scores (remove hardcoded reference to a 4-point scale)
+    fig.add_trace(go.Scatterpolar(r=vals_, theta=dims_, fill="toself", fillcolor="rgba(56,163,232,0.13)", line=dict(color=C["blue"], width=2.5), marker=dict(color=C["blue"], size=7), name="Score moyen"))
+    # Do not force a radial axis range tied to a 4-point scale; let Plotly choose appropriate bounds
+    fig.update_layout(polar=dict(radialaxis=dict()), height=360, margin=dict(l=60,r=60,t=40,b=40))
     return fig
 
 
@@ -474,20 +438,21 @@ def stacked_pct_chart(crosstab: pd.DataFrame, title: str, y_title: str) -> go.Fi
     for label in RESPONSE_ORDER:
         if label not in crosstab.columns:
             continue
+        # show white, bold percent labels inside each segment
         fig.add_trace(go.Bar(
             x=crosstab[label], y=crosstab.index, orientation="h",
             name=label, marker_color=RESPONSE_COLORS[label],
-            text=[f"{v:.1f}%" for v in crosstab[label]], textposition="inside",
+            texttemplate="<b>%{x:.1f}%</b>", textposition="inside",
             insidetextanchor="middle",
-            textfont=dict(color="white", size=11, family="Plus Jakarta Sans"),
+            textfont=dict(color="white", size=11, family="Plus Jakarta Sans",),
         ))
     fig.update_layout(
         barmode="stack",
         title=dict(text=title, font=dict(family="DM Serif Display, serif", size=13, color=C["text"]), x=0.01),
-        xaxis=dict(range=[0, 100], title="Pourcentage (%)", ticksuffix="%",
-                   showgrid=True, gridcolor="#EDF5FD", zeroline=False,
-                   tickfont=dict(color=C["muted"], size=11)),
-        yaxis=dict(title=y_title, tickfont=dict(color=C["text"], size=11), showgrid=False),
+    xaxis=dict(range=[0, 100], title="Pourcentage (%)", ticksuffix="%",
+           showgrid=True, gridcolor="#F5F7FA", zeroline=False,
+           tickfont=dict(color=C["text"], size=11)),
+    yaxis=dict(title=y_title, tickfont=dict(color=C["text"], size=11), showgrid=False),
         legend_title="Réponses",
         plot_bgcolor="#FAFCFF", paper_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Plus Jakarta Sans", color=C["text"], size=11),
@@ -502,22 +467,28 @@ def bar_univarie(series: pd.Series, var_label: str) -> go.Figure:
     counts.columns = [var_label, "n"]
     total = counts["n"].sum()
     counts["pct"] = counts["n"] / total * 100
-    palette = [C["blue"], C["orange"], C["purple"], C["green"], "#F59E0B",
-               "#06B6D4", "#FB923C", "#84CC16"]
+    # Mid-tone palette for category bars
+    palette = ["#4A90E2", "#F39C6B", "#A78BFA", "#66BB6A", "#F2B86B",
+               "#4EC0D9", "#FB9A6B", "#84CC6A"]
     fig = go.Figure()
     for i, row in counts.iterrows():
+        # show percent and effectif inside the bar in white and bold, e.g. "56.0% (112)"
+        txt = f"{row['pct']:.1f}% ({int(row['n'])})"
         fig.add_trace(go.Bar(
             y=[str(row[var_label])], x=[row["pct"]], orientation="h",
             marker_color=palette[i % len(palette)], opacity=0.88,
-            text=f"  {row['pct']:.1f}%  (n={row['n']})",
-            textposition="outside",
-            textfont=dict(color=C["muted"], size=11, family="Plus Jakarta Sans"),
+            text=txt,
+            textposition="inside",
+            insidetextanchor="middle",
+            # use a valid weight value for Plotly (either int or 'normal'/'bold')
+            textfont=dict(color="white", size=12, family="Plus Jakarta Sans", weight='bold'),
             showlegend=False, name=str(row[var_label]),
         ))
     height = max(260, len(counts) * 52 + 80)
     fig = apply_layout(fig, f"Distribution — {var_label}", height)
-    fig.update_xaxes(range=[0, 130], title_text="Pourcentage (%)", ticksuffix="%")
-    fig.update_yaxes(title_text=var_label)
+    # Limit axis to 0..100%
+    fig.update_xaxes(range=[0, 100], title_text="Pourcentage (%)", ticksuffix="%", tickfont=dict(color=C["text"]))
+    fig.update_yaxes(title_text=var_label, tickfont=dict(color=C["text"]))
     return fig
 
 
@@ -527,6 +498,7 @@ def bar_bivarie(df_sub: pd.DataFrame, x_col: str, y_col: str, y_label: str) -> g
     groups.columns = [x_col, "mean", "n"]
     groups = groups.sort_values("mean", ascending=True)
 
+    # Use mid-tone conditional coloring based on mean
     colors_list = [
         C["green"] if v >= 3 else C["orange"] if v >= 2.5 else C["red"]
         for v in groups["mean"]
@@ -539,16 +511,14 @@ def bar_bivarie(df_sub: pd.DataFrame, x_col: str, y_col: str, y_label: str) -> g
         opacity=0.88,
         text=[f"{v:.2f}  (n={n})" for v, n in zip(groups["mean"], groups["n"])],
         textposition="outside",
-        textfont=dict(color=C["muted"], size=11, family="Plus Jakarta Sans"),
+        textfont=dict(color=C["text"], size=11, family="Plus Jakarta Sans"),
     ))
     height = max(260, len(groups) * 52 + 80)
     fig = apply_layout(fig, f"{y_label} selon {x_col}", height)
-    fig.update_xaxes(range=[1, 4.5], title_text="Score moyen (/4)")
-    fig.update_yaxes(title_text=x_col)
-    # Ligne de référence à 2.5
-    fig.add_vline(x=2.5, line_dash="dot", line_color=C["orange"],
-                  line_width=1.5, annotation_text="Seuil 2.5",
-                  annotation_font=dict(color=C["orange"], size=10))
+    # Avoid forcing axis bounds linked to a 4-point scale and remove "/4" from title
+    fig.update_xaxes(title_text="Score moyen", tickfont=dict(color=C["text"]))
+    fig.update_yaxes(title_text=x_col, tickfont=dict(color=C["text"]))
+    # (removed fixed reference line tied to a 4-point scale)
     return fig
 
 
@@ -560,14 +530,12 @@ def stacked_bivarie(df_sub: pd.DataFrame, x_col: str, q_col: str, q_label: str) 
     ct = ct.reindex(columns=RESPONSE_ORDER, fill_value=0)
     return stacked_pct_chart(ct, f"Réponses à « {q_label[:55]}… » selon {x_col}", x_col)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# CHARGEMENT DONNÉES
-# ─────────────────────────────────────────────────────────────────────────────
+# ------------------------------
+# Data loading & scoring
+# ------------------------------
 @st.cache_data
 def load_excel(file) -> pd.DataFrame:
     return pd.read_excel(file)
-
 
 def compute_scores(df: pd.DataFrame, question_map: dict) -> pd.DataFrame:
     out = df.copy()
@@ -581,97 +549,67 @@ def compute_scores(df: pd.DataFrame, question_map: dict) -> pd.DataFrame:
         out["Score_Global"] = out[q_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1)
     return out
 
-
 def question_stats(df: pd.DataFrame, question_map: dict) -> pd.DataFrame:
     rows = []
-    n = len(df)
     for q, col in question_map.items():
         recoded = recode_response(df[col])
-        counts  = recoded.value_counts()
-        total   = counts.sum()
-        pct_neg = (counts.get("Très insatisfait", 0) + counts.get("Insatisfait", 0)) / total * 100
-        pct_pos = (counts.get("Satisfait", 0)        + counts.get("Très satisfait", 0)) / total * 100
-        avg     = pd.to_numeric(df[col], errors="coerce").mean()
+        counts = recoded.value_counts()
+        total = counts.sum()
+        pct_neg = (counts.get("Très insatisfait", 0) + counts.get("Insatisfait", 0)) / total * 100 if total else 0
+        pct_pos = (counts.get("Satisfait", 0) + counts.get("Très satisfait", 0)) / total * 100 if total else 0
+        avg = pd.to_numeric(df[col], errors="coerce").mean()
         rows.append({"question": q, "col": col, "pct_neg": pct_neg, "pct_pos": pct_pos, "avg": avg, "n_valid": int(total)})
     return pd.DataFrame(rows).sort_values("avg")
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# APP PRINCIPALE
-# ─────────────────────────────────────────────────────────────────────────────
+# ------------------------------
+# App principale
+# ------------------------------
 def main():
-    inject_css()
+    st.set_page_config(page_title="QVT Dashboard", page_icon="❤️", layout="wide", initial_sidebar_state="expanded")
+    load_css()
 
-    # ── TOPBAR YODAN ──────────────────────────────────────────────────────────
+    # Topbar (fonts + top header like reference)
     st.markdown(
         '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">'
-        '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">',
-        unsafe_allow_html=True,
+        '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,400;1,9..144,600&display=swap" rel="stylesheet">',
+        unsafe_allow_html=True
     )
-    _col_top, _col_back = st.columns([9, 1])
-    with _col_top:
-        st.markdown(
-            '<div style="display:flex;align-items:center;gap:12px;background:white;border-radius:12px;'
-            'padding:14px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),'
-            '0 4px 12px rgba(30,64,175,0.08);border:1px solid #e8edf5;">'
-            '<div style="width:38px;height:38px;background:linear-gradient(135deg,#22c55e,#16a34a);'
-            'border-radius:10px;display:flex;align-items:center;justify-content:center;">'
-            '<i class="fas fa-heart" style="color:white;font-size:15px;"></i></div>'
-            '<div>'
-            '<div style="font-size:16px;font-weight:700;color:#1e293b;">QVT — Qualité de Vie au Travail</div>'
-            '<div style="font-size:11px;color:#64748b;margin-top:1px;">Analyse de la satisfaction et du bien-être · YODAN Analytics</div>'
-            '</div></div>',
-            unsafe_allow_html=True,
-        )
-    with _col_back:
-        st.write("")
-        st.write("")
-        if st.button("← Accueil", key="back_home_qvt", use_container_width=True):
-            st.switch_page("app.py")
-
-    # ── SIDEBAR IMPORT ────────────────────────────────────────────────────────
-    with st.sidebar:
-        st.header("📂 Données")
-        _qvt_sidebar_up = st.file_uploader(
-            "Charger un fichier Excel ou CSV",
-            type=["xlsx", "xls", "csv"],
-            help="Glissez-déposez ou cliquez pour sélectionner votre fichier QVT.",
-            key="qvt_sidebar_uploader",
-        )
-    if _qvt_sidebar_up is not None:
-        _b = _qvt_sidebar_up.read()
-        if _b:
-            st.session_state["qvt_file_bytes"] = _b
-            st.session_state["qvt_file_name"]  = _qvt_sidebar_up.name
-
-    # ── CHARGEMENT ────────────────────────────────────────────────────────────
-    if "qvt_file_bytes" in st.session_state:
-        _qfn  = st.session_state["qvt_file_name"]
-        _qbuf = io.BytesIO(st.session_state["qvt_file_bytes"])
+    # Topbar: full-width card with icon/title and back link on the right
+    st.markdown(
+        '<div style="display:flex;justify-content:space-between;align-items:center;background:white;border-radius:12px;padding:14px 24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 8px 20px rgba(47,78,64,0.06);border:1px solid #e8edf5;">'
+        '<div style="display:flex;align-items:center;gap:12px;">'
+            '<div style="width:48px;height:48px;background:linear-gradient(135deg,#27AE60,#2ECC71);border-radius:12px;display:flex;align-items:center;justify-content:center;">'
+                '<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
+                '<path fill="white" d="M12 21s-7-4.35-9-6.5C1 11.5 4 7 7.5 7 9.24 7 11 8 12 9.5 13 8 14.76 7 16.5 7 20 7 23 11.5 21 14.5 19 16.65 12 21 12 21z"/>'
+                '</svg>'
+            '</div>'
+            '<div style="margin-left:4px;">'
+                '<div style="font-size:18px;font-weight:700;color:#0f2130;font-family:\'Plus Jakarta Sans\',sans-serif;">QVT — Qualité de Vie au Travail</div>'
+                '<div style="font-size:12px;color:#4b6272;margin-top:2px;font-family:\'Plus Jakarta Sans\',sans-serif;">Analyse de la satisfaction et du bien-être · YODAN Analytics</div>'
+            '</div>'
+        '</div>'
+        '<div>'
+            '<a href="?back=1" class="back-btn" style="text-decoration:none;color:#3b82f6;font-weight:600;">← Accueil</a>'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True
+    )
+    params = get_query_params_safe()
+    if params.get("back"):
         try:
-            if _qfn.lower().endswith((".xlsx", ".xls")):
-                uploaded_data = _qbuf
-            else:
-                uploaded_data = _qbuf
-            df_raw = load_excel(uploaded_data)
-        except Exception as e:
-            st.error(f"❌ Erreur lors du chargement : {e}")
-            st.stop()
-    else:
-        # Fallback : uploader dans la zone principale
-        st.info("📂 Chargez votre fichier de données dans la **barre latérale** ou ici pour démarrer l'analyse.")
-        uploaded = st.file_uploader(
-            "Importer un fichier Excel ou CSV",
-            type=["xlsx", "xls", "csv"],
-            key="qvt_main_uploader",
-        )
-        if uploaded is not None:
-            _b = uploaded.read()
-            if _b:
-                st.session_state["qvt_file_bytes"] = _b
-                st.session_state["qvt_file_name"]  = uploaded.name
-                st.rerun()
+            # clear params to avoid looping
+            set_query_params_safe()
+            st.switch_page("app.py")
+        except Exception:
+            pass
+
+    # Upload
+    uploaded = st.file_uploader("Importer un fichier Excel (.xlsx)", type=["xlsx", "xls"])
+    if uploaded is None:
+        st.info("Importez votre fichier Excel pour démarrer l'analyse (colonnes QVT + variables sociodémographiques).")
         st.stop()
+
+    df_raw = load_excel(uploaded)
     df_raw = add_derived_columns(df_raw)
     question_map = resolve_questions(df_raw)
 
@@ -681,152 +619,159 @@ def main():
 
     df = compute_scores(df_raw, question_map)
 
-    available_questions = list(question_map.keys())
-    score_cols = [s for s in SCORE_GROUPS if s in df.columns]
-    socio_cols = [c for c in SOCIO_CANDIDATES if c in df.columns]
-
-    # ── FILTRES ──
-    with st.container(border=True):
-        f1, f2, f3, f4 = st.columns([2, 2, 2, 1])
-        genre_col = find_col(df, "Genre")
-        dir_col   = find_col(df, "Direction") or find_col(df, "Departement") or find_col(df, "Département")
-
-        with f1:
+    # Filtres simples
+    genre_col = find_col(df, "Genre")
+    dir_col   = find_col(df, "Direction") or find_col(df, "Departement") or find_col(df, "Département")
+    with st.expander("Filtres", expanded=False):
+        cols = st.columns([2,2,2,1])
+        with cols[0]:
             if dir_col:
                 opts_dir = ["Tous"] + sorted(df[dir_col].dropna().astype(str).unique().tolist())
-                sel_dir  = st.selectbox("Département / Direction", opts_dir, key="fil_dir")
+                sel_dir = st.selectbox("Département / Direction", opts_dir, index=0)
             else:
                 sel_dir = "Tous"
                 st.selectbox("Département / Direction", ["—"], disabled=True)
-        with f2:
+        with cols[1]:
             if genre_col:
                 opts_genre = ["Tous"] + sorted(df[genre_col].dropna().astype(str).unique().tolist())
-                sel_genre  = st.selectbox("Genre", opts_genre, key="fil_genre")
+                sel_genre = st.selectbox("Genre", opts_genre, index=0)
             else:
                 sel_genre = "Tous"
                 st.selectbox("Genre", ["—"], disabled=True)
-        with f3:
+        with cols[2]:
             age_col = find_col(df, "Age")
             if age_col:
                 ages = pd.to_numeric(df[age_col], errors="coerce").dropna()
                 if not ages.empty:
-                    age_rng = st.slider("Âge", int(ages.min()), int(ages.max()),
-                                        (int(ages.min()), int(ages.max())), key="fil_age")
+                    age_rng = st.slider("Âge", int(ages.min()), int(ages.max()), (int(ages.min()), int(ages.max())))
                 else:
                     age_rng = None
             else:
                 age_rng = None
-                st.slider("Âge", 18, 65, (18, 65), disabled=True)
-        with f4:
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Réinitialiser", use_container_width=True):
-                for k in ["fil_dir", "fil_genre", "fil_age"]:
-                    st.session_state.pop(k, None)
-                st.rerun()
+                st.slider("Âge", 18, 65, (18,65), disabled=True)
+        with cols[3]:
+            if st.button("Réinitialiser"):
+                st.experimental_rerun()
 
-    # Appliquer filtres
     mask = pd.Series(True, index=df.index)
     if dir_col and sel_dir != "Tous":
         mask &= df[dir_col].astype(str) == sel_dir
     if genre_col and sel_genre != "Tous":
         mask &= df[genre_col].astype(str) == sel_genre
-    if age_rng and age_col:
+    if 'age_rng' in locals() and age_col and age_rng:
         ages_s = pd.to_numeric(df[age_col], errors="coerce")
         mask &= ages_s.between(age_rng[0], age_rng[1])
     df_f = df[mask].copy()
     n = len(df_f)
-
     if n == 0:
-        st.warning("Aucun répondant ne correspond aux filtres sélectionnés.")
+        st.warning("Aucun répondant correspondant aux filtres.")
         st.stop()
 
-    # Badge effectif filtré
-    st.markdown(f"""
-    <div style="display:flex;align-items:center;gap:0.5rem;margin:0.3rem 0 0.8rem auto;width:fit-content;">
-        <span style="font-size:0.68rem;color:{C['muted']};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Effectif filtré</span>
-        <span class="badge badge-blue" style="font-size:0.8rem;padding:0.2rem 0.7rem;">{n}</span>
-    </div>
-    """, unsafe_allow_html=True)
-
+    # Derived values used by the tabs
     avg_global = df_f["Score_Global"].mean() if "Score_Global" in df_f else 0.0
-    q_stats = question_stats(df_f, question_map)
-    top_risks     = q_stats.nsmallest(5, "avg")
-    top_strengths = q_stats.nlargest(5, "avg")
-
-    score_means = {
-        s: df_f[s].mean()
-        for s in score_cols
-    }
-
+    # available questions, score columns and socio columns used in analyses
     available_questions = list(question_map.keys())
     score_cols = [s for s in SCORE_GROUPS if s in df.columns]
     socio_cols = [c for c in SOCIO_CANDIDATES if c in df.columns]
+    # score means for radar / bars
+    score_means = {s: df_f[s].mean() for s in score_cols}
+    # question statistics used in risk/strength lists
+    q_stats = question_stats(df_f, question_map)
+    top_risks = q_stats.nsmallest(5, "avg") if not q_stats.empty else pd.DataFrame()
+    top_strengths = q_stats.nlargest(5, "avg") if not q_stats.empty else pd.DataFrame()
 
-    # ═════════════════════════════════════════════════════════════════════════
-    # ONGLETS
-    # ═════════════════════════════════════════════════════════════════════════
+    # Tabs (full analyses copied from the detailed script)
     tab1, tab2, tab3 = st.tabs(["Vue d'ensemble", "Analyses détaillées", "Analyse finales"])
-    # ─────────────────────────────────────────────────────────────────────────
-    # ONGLET 1 — VUE D'ENSEMBLE
-    # ─────────────────────────────────────────────────────────────────────────
+
     with tab1:
         sec_title("Indicateurs clés")
-        pct_sat      = (df_f["Score_Global"] >= 3).mean() * 100 if "Score_Global" in df_f else 0
-        pct_meaning  = (df_f["Sens du Travail"] >= 3).mean()       * 100 if "Sens du Travail"       in df_f else 0
-        pct_balance  = (df_f["Équilibre de Vie"] >= 3).mean()      * 100 if "Équilibre de Vie"       in df_f else 0
-        pct_rel      = (df_f["Relations Interpersonnelles"] >= 3).mean() * 100 if "Relations Interpersonnelles" in df_f else 0
+        pct_sat = (df_f["Score_Global"] >= 3).mean() * 100 if "Score_Global" in df_f else 0
 
-        c1, c2, c3, c4, c5 = st.columns(5)
-        with c1: kpi_card("Répondants", n, C["blue"])
-        with c2: kpi_card("Score Global Moyen", avg_global, C["green"] if avg_global >= 3 else C["orange"], "/4", 2)
-        with c3: kpi_card("Satisfaction élevée", pct_sat, C["green"], "%", 1, sub=f"{int(n*pct_sat/100)} personnes")
-        with c4: kpi_card("Sens du Travail", pct_meaning, C["purple"], "%", 1)
-        with c5: kpi_card("Équilibre de Vie", pct_balance, "#F59E0B", "%", 1)
+        # Demographic KPIs: nombre d'hommes / nombre de femmes / âge moyen
+        male_count = 0
+        female_count = 0
+        male_pct = 0.0
+        female_pct = 0.0
+        age_avg = None
+        if genre_col:
+            gs = df_f[genre_col].dropna().astype(str)
+            if not gs.empty:
+                counts = gs.value_counts()
+                # heuristiques simples pour détecter 'homme'/'femme' libellés
+                male_key = next((k for k in counts.index if 'hom' in k.lower()), None)
+                female_key = next((k for k in counts.index if 'fem' in k.lower()), None)
+                if male_key:
+                    male_count = int(counts.get(male_key, 0))
+                if female_key:
+                    female_count = int(counts.get(female_key, 0))
+                total = int(counts.sum())
+                if total:
+                    male_pct = male_count / total * 100
+                    female_pct = female_count / total * 100
+        age_col_now = find_col(df, "Age")
+        if age_col_now:
+            ages = pd.to_numeric(df_f[age_col_now], errors="coerce").dropna()
+            if not ages.empty:
+                age_avg = int(round(ages.mean()))
 
-        # Jauges normalisées par dimension
-        sec_title("Scores par dimension (normalisé 0–100 %)")
-        gauge_cols = st.columns(len(score_cols))
-        for i, sc in enumerate(score_cols):
-            avg = df_f[sc].mean()
-            pct = (avg - 1) / 3 * 100
-            color = C["green"] if pct > 65 else C["orange"] if pct > 45 else C["red"]
-            with gauge_cols[i]:
-                semi_gauge(pct, color, sc, "Score normalisé", key=f"g_{sc}")
+        # Arrange KPIs on a single row (Répondants first). Show a single gender KPI
+        cols_kpi = st.columns(4)
+        # Respondants (first, left)
+        with cols_kpi[0]:
+            kpi_card("Répondants", n, C['blue'], "", 0)
 
-        # Radar + Pie genre
-        col_radar, col_pie = st.columns([1.4, 1])
-        with col_radar:
-            sec_title("Profil QVT — Radar des dimensions")
-            st.plotly_chart(radar_chart(score_means), use_container_width=True)
-        with col_pie:
-            if genre_col:
-                sec_title("Répartition par genre")
-                gcounts = df_f[genre_col].value_counts().reset_index()
-                gcounts.columns = ["Genre", "n"]
-                fig_pie = px.pie(gcounts, names="Genre", values="n", hole=0.45,
-                                  color_discrete_sequence=[C["blue"], C["orange"]])
-                fig_pie.update_layout(paper_bgcolor="rgba(0,0,0,0)", margin=dict(t=20, b=20, l=20, r=20), height=320)
-                st.plotly_chart(fig_pie, use_container_width=True)
+        # Single gender KPI: show the majority gender (label includes count)
+        if male_count >= female_count:
+            gender_label = f"<i class='fa fa-mars' style='color:{C['blue']};margin-right:8px;'></i>Nombre d'Hommes ({male_count})"
+            gender_value = f"{male_pct:.1f}%"
+            gender_color = C['blue']
+        else:
+            gender_label = f"<i class='fa fa-venus' style='color:{C['orange']};margin-right:8px;'></i>Nombre de Femmes ({female_count})"
+            gender_value = f"{female_pct:.1f}%"
+            gender_color = C['orange']
+        with cols_kpi[1]:
+            kpi_card(gender_label, gender_value, gender_color, "", 0)
 
-        # Scores moyens par dimension — barre horizontale
-        sec_title("Scores moyens par dimension")
-        means_df = pd.DataFrame([{"Dimension": k, "Score": v} for k, v in score_means.items()]).sort_values("Score")
-        colors_bar = [
-            SCORE_COLORS.get(d, C["blue"]) for d in means_df["Dimension"]
-        ]
-        fig_bars = go.Figure(go.Bar(
-            y=means_df["Dimension"], x=means_df["Score"], orientation="h",
-            marker_color=colors_bar, opacity=0.88,
-            text=[f"{v:.2f}/4" for v in means_df["Score"]], textposition="outside",
-            textfont=dict(color=C["muted"], size=11),
-        ))
-        fig_bars = apply_layout(fig_bars, height=320)
-        fig_bars.update_xaxes(range=[1, 4.5], title_text="Score moyen")
-        fig_bars.add_vline(x=2.5, line_dash="dot", line_color=C["orange"], line_width=1.5,
-                           annotation_text="Seuil 2.5", annotation_font=dict(color=C["orange"], size=10))
-        st.plotly_chart(fig_bars, use_container_width=True)
+        # Age moyenne
+        with cols_kpi[2]:
+            if age_avg is not None:
+                kpi_card("Age moyen", f"{age_avg} ans", C['text'], "", 0)
+            else:
+                kpi_card("Age moyen", "—", C['text'], "", 0)
 
-        # Distribution globale des réponses
+        # Reserve the fourth KPI slot (kept for parity) — leave empty or reuse later
+        with cols_kpi[3]:
+            pass
+
+        # Scores par dimension (normalisé 0–100 %) — keep these gauges
+        if score_cols:
+            sec_title("Scores par dimension (normalisé 0–100 %)")
+            gauge_cols = st.columns(len(score_cols))
+            for i, sc in enumerate(score_cols):
+                # compute normalized percent (1..4 -> 0..100)
+                try:
+                    avg = df_f[sc].mean()
+                except Exception:
+                    avg = float('nan')
+                pct = (avg - 1) / 3 * 100 if not pd.isna(avg) else 0
+                # Display a truncated integer (avoid rounding 64.8 -> 65 visually)
+                display_pct = int(pct) if not pd.isna(pct) else 0
+                # Determine badge (using the float pct to be precise)
+                if pct > 65:
+                    badge_bg, badge_c, badge_t = ("#DCFCE7", "#15803D", "Élevé")
+                elif pct > 40:
+                    badge_bg, badge_c, badge_t = ("#FEE2E2", "#B91C1C", "Moyen")
+                else:
+                    badge_bg, badge_c, badge_t = ("#FEE2E2", "#B91C1C", "Faible")
+                # Choose stroke color to match badge semantics: Élevé -> green, Moyen/Faible -> red
+                stroke_color = C["green"] if badge_t == "Élevé" else C["red"]
+                with gauge_cols[i]:
+                    semi_gauge(display_pct, stroke_color, sc, "Score normalisé", key=f"g_{sc}", badge_override=(badge_bg, badge_c, badge_t))
+
+        # The genre pie chart was removed per user request.
+        # (Previously: Répartition par genre)
+
+        # Distribution globale des réponses (kept)
         sec_title("Distribution globale des réponses")
         all_reps = []
         for q, col in question_map.items():
@@ -838,16 +783,15 @@ def main():
             fig_dist.add_trace(go.Bar(
                 x=[label], y=[dist.get(label, 0)],
                 marker_color=RESPONSE_COLORS[label], opacity=0.88,
-                text=[f"{dist.get(label,0):.1f}%"], textposition="outside",
+                # show percent inside the bar in white and bold, centered
+                texttemplate="<b>%{y:.1f}%</b>", textposition="inside", insidetextanchor="middle",
+                textfont=dict(color="white", size=12, family="Plus Jakarta Sans"),
                 name=label, showlegend=False,
             ))
         fig_dist = apply_layout(fig_dist, f"Toutes questions confondues · {n * len(question_map):,} réponses totales", height=280)
         fig_dist.update_yaxes(title_text="%", range=[0, 60])
         st.plotly_chart(fig_dist, use_container_width=True)
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # ONGLET 2 — ANALYSE DÉTAILLÉE
-    # ─────────────────────────────────────────────────────────────────────────
     with tab2:
 
         # ── JAUGES RISQUES / FORCES ──────────────────────────────────────────
@@ -855,7 +799,7 @@ def main():
         col_risk, col_str = st.columns(2)
 
         with col_risk:
-            st.markdown("""
+            st.markdown(textwrap.dedent("""
             <div class="risk-card">
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem;">
                     <span class="badge badge-red">RISQUES</span>
@@ -865,27 +809,50 @@ def main():
                     % cumulé <strong>Insatisfait + Très insatisfait</strong>
                 </p>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
-            st.markdown("<div style='margin-top:0.7rem;'>", unsafe_allow_html=True)
+            # Render RISQUES header and items as raw HTML via components.html to avoid Markdown parsing
+            header_html = textwrap.dedent("""
+            <style>
+              .q-section { padding-top: 8px; }
+              .q-items { margin-top: 18px; display:block; }
+              .q-items .item-row { margin-bottom: 18px; padding: 10px 12px; border-radius:10px; background: #fff; box-shadow:0 6px 18px rgba(16,24,40,0.03); }
+            </style>
+            <div class="risk-card q-section">
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">
+                    <span class="badge badge-red">RISQUES</span>
+                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;">Questions les plus critiques</span>
+                </div>
+                <p style="font-size:0.74rem;color:#6B88A8;margin:0 0 0.8rem;">
+                    % cumulé <strong>Insatisfait + Très insatisfait</strong>
+                </p>
+            </div>
+            """)
+            items = []
             for _, row in top_risks.iterrows():
-                bar = dual_status_bar(row["pct_neg"], row["pct_pos"], C["dark_red"], C["dark_grn"])
-                st.markdown(f"""
+                # use mid-tone colors for the negative/positive bars
+                bar = dual_status_bar(row["pct_neg"], row["pct_pos"], C["red"], C["green"])
+                bar = textwrap.dedent(bar).strip()
+                item_html = textwrap.dedent(f"""
                 <div class="item-row" style="border-left:3px solid {C['red']};">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
                         <span style="font-size:0.79rem;color:#3B5878;font-weight:600;line-height:1.4;">{row['question']}</span>
                         <div style="text-align:right;line-height:1.1;">
-                            <div style="font-size:0.9rem;font-weight:800;color:{C['dark_red']};">{row['pct_neg']:.1f}% insatisfaits</div>
-                            <div style="font-size:0.75rem;color:{C['dark_grn']};margin-top:0.1rem;">{row['pct_pos']:.1f}% satisfaits</div>
+                            <div style="font-size:0.9rem;font-weight:800;color:{C['red']};">{row['pct_neg']:.1f}% insatisfaits</div>
+                            <div style="font-size:0.75rem;color:{C['green']};margin-top:0.1rem;">{row['pct_pos']:.1f}% satisfaits</div>
                         </div>
                     </div>
                     {bar}
                 </div>
-                """, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+                """)
+                items.append(item_html)
+            items_html = "<div class='q-items' style='margin-top:0.7rem;'>" + "".join(items) + "</div>"
+            total_html = header_html + items_html
+            h = max(180, 90 * max(1, len(items)) + 40)
+            components.html(total_html, height=h)
 
         with col_str:
-            st.markdown("""
+            st.markdown(textwrap.dedent("""
             <div class="strength-card">
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem;">
                     <span class="badge badge-green">FORCES</span>
@@ -895,26 +862,48 @@ def main():
                     % cumulé <strong>Satisfait + Très satisfait</strong>
                 </p>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
-            st.markdown("<div style='margin-top:0.7rem;'>", unsafe_allow_html=True)
+            header_html = textwrap.dedent("""
+            <style>
+              .q-section { padding-top: 8px; }
+              .q-items { margin-top: 18px; display:block; }
+              .q-items .item-row { margin-bottom: 18px; padding: 10px 12px; border-radius:10px; background: #fff; box-shadow:0 6px 18px rgba(16,24,40,0.03); }
+            </style>
+            <div class="strength-card q-section">
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">
+                    <span class="badge badge-green">FORCES</span>
+                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;">Points forts à valoriser</span>
+                </div>
+                <p style="font-size:0.74rem;color:#6B88A8;margin:0 0 0.8rem;">
+                    % cumulé <strong>Satisfait + Très satisfait</strong>
+                </p>
+            </div>
+            """)
+            items = []
             for _, row in top_strengths.iterrows():
-                bar = dual_status_bar(row["pct_neg"], row["pct_pos"], C["dark_red"], C["dark_grn"])
-                st.markdown(f"""
+                # use mid-tone colors for the bars
+                bar = dual_status_bar(row["pct_neg"], row["pct_pos"], C["red"], C["green"])
+                bar = textwrap.dedent(bar).strip()
+                item_html = textwrap.dedent(f"""
                 <div class="item-row" style="border-left:3px solid {C['green']};">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
                         <span style="font-size:0.79rem;color:#3B5878;font-weight:600;line-height:1.4;">{row['question']}</span>
                         <div style="text-align:right;line-height:1.1;">
-                            <div style="font-size:0.9rem;font-weight:800;color:{C['dark_grn']};">{row['pct_pos']:.1f}% satisfaits</div>
-                            <div style="font-size:0.75rem;color:{C['dark_red']};margin-top:0.1rem;">{row['pct_neg']:.1f}% insatisfaits</div>
+                            <div style="font-size:0.9rem;font-weight:800;color:{C['green']};">{row['pct_pos']:.1f}% satisfaits</div>
+                            <div style="font-size:0.75rem;color:{C['red']};margin-top:0.1rem;">{row['pct_neg']:.1f}% insatisfaits</div>
                         </div>
                     </div>
                     {bar}
                 </div>
-                """, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+                """)
+                items.append(item_html)
+            items_html = "<div class='q-items' style='margin-top:0.7rem;'>" + "".join(items) + "</div>"
+            total_html = header_html + items_html
+            h = max(180, 90 * max(1, len(items)) + 40)
+            components.html(total_html, height=h)
 
-                # ── ANALYSES UNIVARIÉES ──────────────────────────────────────────────
+        # ── ANALYSES UNIVARIÉES ──────────────────────────────────────────────
         sec_title("Analyse univariée — variables sociodémographiques")
 
         if not socio_cols:
@@ -948,59 +937,105 @@ def main():
                 score_options = score_cols + (["Score_Global"] if "Score_Global" in df_f else [])
                 sel_score = st.selectbox("Dimension QVT", score_options, key="bi_score")
             with b3:
-                bi_type = st.radio("Type de visualisation", ["Scores moyens", "Répartition réponses"], key="bi_type", horizontal=True)
+                # Removed the 'Scores moyens' option — always show 'Répartition réponses'
+                st.markdown("<div style='padding-top:0.6rem;color:#6B88A8;font-size:0.95rem;'>Type de visualisation : <strong>Répartition réponses</strong></div>", unsafe_allow_html=True)
 
-            if bi_type == "Scores moyens":
-                st.plotly_chart(bar_bivarie(df_f[[sel_socio, sel_score]].dropna(), sel_socio, sel_score, sel_score), use_container_width=True)
+            # Always render the 'Répartition réponses' view (stacked distribution by question)
+            # Choisir une question dans le groupe de la dimension sélectionnée
+            if sel_score in SCORE_GROUPS:
+                qs_in_group = [q for q in SCORE_GROUPS[sel_score] if q in question_map]
             else:
-                # Choisir une question dans le groupe de la dimension sélectionnée
-                if sel_score in SCORE_GROUPS:
-                    qs_in_group = [q for q in SCORE_GROUPS[sel_score] if q in question_map]
-                else:
-                    qs_in_group = available_questions
-                if qs_in_group:
-                    sel_q_bi = st.selectbox("Question", qs_in_group, key="bi_question")
-                    st.plotly_chart(
-                        stacked_bivarie(df_f, sel_socio, question_map[sel_q_bi], sel_q_bi),
-                        use_container_width=True,
-                    )
+                qs_in_group = available_questions
+            if qs_in_group:
+                sel_q_bi = st.selectbox("Question", qs_in_group, key="bi_question")
+                st.plotly_chart(
+                    stacked_bivarie(df_f, sel_socio, question_map[sel_q_bi], sel_q_bi),
+                    use_container_width=True,
+                )
 
-            # Tableau croisé
+            # Tableau croisé — afficher le tableau croisé correspondant au graphique empilé
             with st.expander("Tableau croisé détaillé", expanded=False):
-                ct = df_f.groupby(sel_socio)[sel_score].agg(["mean", "count"]).reset_index()
-                ct.columns = [sel_socio, "Score moyen", "N"]
-                ct["Score moyen"] = ct["Score moyen"].round(2)
-                ct = ct.sort_values("Score moyen", ascending=False)
-                st.dataframe(ct, use_container_width=True, hide_index=True)
+                # build counts and percentages per response category for the selected question
+                tmp = df_f.copy()
+                # recode the selected question to the human-readable response categories
+                tmp["Reponse"] = recode_response(tmp[question_map[sel_q_bi]])
+                # counts by socio group x response
+                counts = pd.crosstab(tmp[sel_socio], tmp["Reponse"]).reindex(columns=RESPONSE_ORDER, fill_value=0)
+                # percentages per row
+                pct = counts.div(counts.sum(axis=1).replace(0, 1), axis=0) * 100
+                # format cells as: '56.0% (112)'
+                display_df = counts.copy().astype(object)
+                for col in counts.columns:
+                    display_df[col] = pct[col].round(1).astype(str) + "% (" + counts[col].astype(int).astype(str) + ")"
+                display_df = display_df.reset_index()
+                display_df.columns = [sel_socio] + list(counts.columns)
 
-                ####################### Onglet : Analyse finale ########################
-        with tab3: 
-            st.header("Analyse finale")
-            st.write("Résumé global, jauge Score Global")
+                # Build an HTML table with colored cells matching the RESPONSE_COLORS
+                def _text_color_for(hexcolor: str) -> str:
+                    # simple luminance check to pick white or dark text for contrast
+                    h = hexcolor.lstrip('#')
+                    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+                    # relative luminance
+                    lum = (0.2126 * (r/255) + 0.7152 * (g/255) + 0.0722 * (b/255))
+                    return '#ffffff' if lum < 0.65 else C['text']
 
-            # --- Score final normalisé ---
-            df["Score_final_normalise"] = (
-                df[list(question_map.values())]
-                .apply(pd.to_numeric, errors="coerce")
-                .apply(lambda x: ((x - 1) / 3) * 100)
-                .mean(axis=1)
-            )
+                cols = [sel_socio] + list(counts.columns)
+                table_html = ['<div style="overflow:auto;padding-top:6px;">']
+                table_html.append('<table style="border-collapse:separate;border-spacing:8px;width:100%;font-family:Plus Jakarta Sans, sans-serif;">')
+                # header
+                table_html.append('<thead><tr>')
+                for c in cols:
+                    table_html.append(f'<th style="text-align:left;padding:8px 12px;color:{C["muted"]};font-weight:600;">{c}</th>')
+                table_html.append('</tr></thead>')
+                # body
+                table_html.append('<tbody>')
+                for _, row in display_df.iterrows():
+                    table_html.append('<tr>')
+                    # first column: group label
+                    table_html.append(f'<td style="padding:8px 12px;color:{C["text"]};font-weight:600;">{row[sel_socio]}</td>')
+                    for resp in counts.columns:
+                        raw = counts.loc[row[sel_socio], resp]
+                        pctv = pct.loc[row[sel_socio], resp]
+                        bg = RESPONSE_COLORS.get(resp, '#ffffff')
+                        fg = _text_color_for(bg)
+                        cell_html = f"{pctv:.1f}% ({int(raw)})"
+                        table_html.append(
+                            f'<td style="background:{bg};color:{fg};padding:8px 12px;text-align:center;border-radius:6px;min-width:80px;">{cell_html}</td>'
+                        )
+                    table_html.append('</tr>')
+                table_html.append('</tbody></table></div>')
+                total_html = '\n'.join(table_html)
+                # estimate height
+                h = min(600, 48 + len(display_df) * 44)
+                components.html(total_html, height=h)
 
-            # Classification Bon/Mauvais
-            df["Categorie_Global"] = np.where(df["Score_final_normalise"] < 50, "Mauvais", "Bon")
+    with tab3: 
+        st.header("Analyse finale")
+        st.write("Résumé global")
 
-            # --- Graphique Score Global ---
-            counts_global = df["Categorie_Global"].value_counts()
-            fig_global = px.pie(
-                names=counts_global.index,
-                values=counts_global.values,
-                title="Répartition des participants selon le Score final normalisé",
-                color=counts_global.index,
-                color_discrete_map={"Mauvais": "#8B0000", "Bon": "#006400"}
-            )
-            fig_global.update_traces(textinfo="percent+label")
-            st.plotly_chart(fig_global, use_container_width=True, key="fig_global_tab3")
+        # --- Score final normalisé (compute on the filtered dataframe so the chart reacts to filters) ---
+        df_f["Score_final_normalise"] = (
+            df_f[list(question_map.values())]
+            .apply(pd.to_numeric, errors="coerce")
+            .apply(lambda x: ((x - 1) / 3) * 100)
+            .mean(axis=1)
+        )
 
-            
+        # Classification Bon/Mauvais (on filtered set)
+        df_f["Categorie_Global"] = np.where(df_f["Score_final_normalise"] < 50, "Mauvais", "Bon")
+
+        # --- Graphique Score Global (use filtered counts) ---
+        counts_global = df_f["Categorie_Global"].value_counts()
+        fig_global = px.pie(
+            names=counts_global.index,
+            values=counts_global.values,
+            title="Répartition des employés selon la Bonne ou la Mauvaise Qualité de Vie au Travail",
+            color=counts_global.index,
+            color_discrete_map={"Mauvais": C["red"], "Bon": C["green"]}
+        )
+        # make labels inside the pie white and bold for readability on colored slices
+        fig_global.update_traces(textinfo="percent+label", textfont=dict(color="white", size=12, family="Plus Jakarta Sans"), insidetextorientation='radial')
+        st.plotly_chart(fig_global, use_container_width=True, key="fig_global_tab3")
+
 if __name__ == "__main__":
     main()
