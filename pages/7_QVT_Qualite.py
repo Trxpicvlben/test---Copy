@@ -184,12 +184,19 @@ def load_css() -> None:
 
 # Query param helpers (compatibility across Streamlit versions)
 def get_query_params_safe():
-    """Return query params using experimental_ or stable API depending on availability."""
-    if hasattr(st, "experimental_get_query_params"):
-        try:
-            return st.query_params()
-        except Exception:
-            pass
+    """Return query params using the most appropriate Streamlit API.
+
+    Prefer the new `st.query_params` property when available, then
+    fall back to `st.get_query_params()` if present. Always avoid
+    calling experimental_ APIs directly to prevent deprecation warnings.
+    """
+    try:
+        # property introduced in newer Streamlit versions
+        if hasattr(st, "query_params"):
+            return dict(st.query_params)
+    except Exception:
+        pass
+    # older stable API
     if hasattr(st, "get_query_params"):
         try:
             return st.get_query_params()
@@ -198,17 +205,30 @@ def get_query_params_safe():
     return {}
 
 def set_query_params_safe(**params):
-    """Set query params using experimental_ or stable API depending on availability."""
-    if hasattr(st, "experimental_set_query_params"):
-        try:
-            return st.experimental_set_query_params(**params)
-        except Exception:
-            pass
+    """Set query params using the stable Streamlit API.
+
+    Prefer `st.set_query_params()` if available; fall back to the
+    experimental API only if necessary (kept as last resort).
+    """
     if hasattr(st, "set_query_params"):
         try:
             return st.set_query_params(**params)
         except Exception:
             pass
+    # Do not call experimental APIs to avoid deprecation warnings; if
+    # the stable API is not available, silently skip setting params.
+    return None
+
+
+def safe_rerun():
+    """Rerun the app using the best available API without causing deprecation warnings."""
+    if hasattr(st, "rerun"):
+        try:
+            return st.rerun()
+        except Exception:
+            pass
+    # Avoid calling experimental_rerun() to prevent visible deprecation warnings
+    # on newer Streamlit versions; if rerun isn't available, do nothing.
     return None
 
 # ------------------------------
@@ -444,7 +464,8 @@ def stacked_pct_chart(crosstab: pd.DataFrame, title: str, y_title: str) -> go.Fi
             name=label, marker_color=RESPONSE_COLORS[label],
             texttemplate="<b>%{x:.1f}%</b>", textposition="inside",
             insidetextanchor="middle",
-            textfont=dict(color="white", size=11, family="Plus Jakarta Sans",),
+            textfont=dict(color="white", size=11, family="Plus Jakarta Sans"),
+            marker=dict(line=dict(color="white", width=0.8)),
         ))
     fig.update_layout(
         barmode="stack",
@@ -651,13 +672,14 @@ def main():
                 st.slider("Âge", 18, 65, (18,65), disabled=True)
         with cols[3]:
             if st.button("Réinitialiser"):
-                st.experimental_rerun()
+                safe_rerun()
 
     mask = pd.Series(True, index=df.index)
     if dir_col and sel_dir != "Tous":
         mask &= df[dir_col].astype(str) == sel_dir
     if genre_col and sel_genre != "Tous":
-        mask &= df[genre_col].astype(str) == sel_genre
+        # Compare normalized strings to tolerate case / whitespace / accent variations
+        mask &= df[genre_col].astype(str).map(normalize) == normalize(sel_genre)
     if 'age_rng' in locals() and age_col and age_rng:
         ages_s = pd.to_numeric(df[age_col], errors="coerce")
         mask &= ages_s.between(age_rng[0], age_rng[1])
@@ -693,11 +715,12 @@ def main():
         male_pct = 0.0
         female_pct = 0.0
         age_avg = None
+
+        # Compute gender counts on the currently filtered dataframe so KPIs react to the Genre filter
         if genre_col:
             gs = df_f[genre_col].dropna().astype(str)
             if not gs.empty:
                 counts = gs.value_counts()
-                # heuristiques simples pour détecter 'homme'/'femme' libellés
                 male_key = next((k for k in counts.index if 'hom' in k.lower()), None)
                 female_key = next((k for k in counts.index if 'fem' in k.lower()), None)
                 if male_key:
@@ -708,40 +731,57 @@ def main():
                 if total:
                     male_pct = male_count / total * 100
                     female_pct = female_count / total * 100
+
         age_col_now = find_col(df, "Age")
         if age_col_now:
             ages = pd.to_numeric(df_f[age_col_now], errors="coerce").dropna()
             if not ages.empty:
                 age_avg = int(round(ages.mean()))
 
-        # Arrange KPIs on a single row (Répondants first). Show a single gender KPI
-        cols_kpi = st.columns(4)
-        # Respondants (first, left)
-        with cols_kpi[0]:
-            kpi_card("Répondants", n, C['blue'], "", 0)
+        # Prepare KPI items in order and create responsive columns so remaining KPIs expand
+        displayed = ["Répondants"]
+        sel_genre_norm = normalize(sel_genre) if sel_genre and isinstance(sel_genre, str) else "tous"
+        show_male = (sel_genre == "Tous") or ("hom" in sel_genre_norm)
+        show_female = (sel_genre == "Tous") or ("fem" in sel_genre_norm)
+        if show_male and male_count > 0:
+            displayed.append("Homme")
+        if show_female and female_count > 0:
+            displayed.append("Femme")
+        displayed.append("Age")
 
-        # Single gender KPI: show the majority gender (label includes count)
-        if male_count >= female_count:
-            gender_label = f"<i class='fa fa-mars' style='color:{C['blue']};margin-right:8px;'></i>Nombre d'Hommes ({male_count})"
-            gender_value = f"{male_pct:.1f}%"
-            gender_color = C['blue']
+        # Set column weights: keep first KPI narrower, let remaining take more space
+        if len(displayed) <= 1:
+            weights = [1]
         else:
-            gender_label = f"<i class='fa fa-venus' style='color:{C['orange']};margin-right:8px;'></i>Nombre de Femmes ({female_count})"
-            gender_value = f"{female_pct:.1f}%"
-            gender_color = C['orange']
-        with cols_kpi[1]:
-            kpi_card(gender_label, gender_value, gender_color, "", 0)
+            weights = [1] + [2] * (len(displayed) - 1)
+        cols_kpi = st.columns(weights)
 
-        # Age moyenne
-        with cols_kpi[2]:
+        # Fill columns according to displayed list
+        col_idx = 0
+        with cols_kpi[col_idx]:
+            kpi_card("Répondants", n, C['blue'], "", 0)
+        col_idx += 1
+
+        if "Homme" in displayed:
+            with cols_kpi[col_idx]:
+                male_label = f"<i class='fa fa-mars' style='color:{C['blue']};margin-right:8px;'></i>Nombre d'Hommes ({male_count})"
+                male_value = f"{male_pct:.1f}%"
+                kpi_card(male_label, male_value, C['blue'], "", 0)
+            col_idx += 1
+
+        if "Femme" in displayed:
+            with cols_kpi[col_idx]:
+                female_label = f"<i class='fa fa-venus' style='color:{C['orange']};margin-right:8px;'></i>Nombre de Femmes ({female_count})"
+                female_value = f"{female_pct:.1f}%"
+                kpi_card(female_label, female_value, C['orange'], "", 0)
+            col_idx += 1
+
+        # Age moyenne in the last slot
+        with cols_kpi[col_idx]:
             if age_avg is not None:
                 kpi_card("Age moyen", f"{age_avg} ans", C['text'], "", 0)
             else:
                 kpi_card("Age moyen", "—", C['text'], "", 0)
-
-        # Reserve the fourth KPI slot (kept for parity) — leave empty or reuse later
-        with cols_kpi[3]:
-            pass
 
         # Scores par dimension (normalisé 0–100 %) — keep these gauges
         if score_cols:
@@ -790,7 +830,7 @@ def main():
             ))
         fig_dist = apply_layout(fig_dist, f"Toutes questions confondues · {n * len(question_map):,} réponses totales", height=280)
         fig_dist.update_yaxes(title_text="%", range=[0, 60])
-        st.plotly_chart(fig_dist, use_container_width=True)
+        st.plotly_chart(fig_dist, width='stretch')
 
     with tab2:
 
@@ -915,7 +955,7 @@ def main():
             # Graphique
             st.plotly_chart(
                 bar_univarie(df_f[sel_uni].astype(str), sel_uni),
-                use_container_width=True
+                width='stretch'
             )
 
             # Tableau de fréquences
@@ -923,7 +963,7 @@ def main():
                 freq = df_f[sel_uni].astype(str).value_counts(normalize=False).reset_index()
                 freq.columns = [sel_uni, "Effectif"]
                 freq["Pourcentage (%)"] = (freq["Effectif"] / freq["Effectif"].sum() * 100).round(1)
-                st.dataframe(freq, use_container_width=True, hide_index=True)
+                st.dataframe(freq, width='stretch', hide_index=True)
 
         # ── ANALYSES BIVARIÉES ───────────────────────────────────────────────
         sec_title("Analyse bivariée — score QVT selon variable sociodémographique")
@@ -950,7 +990,7 @@ def main():
                 sel_q_bi = st.selectbox("Question", qs_in_group, key="bi_question")
                 st.plotly_chart(
                     stacked_bivarie(df_f, sel_socio, question_map[sel_q_bi], sel_q_bi),
-                    use_container_width=True,
+                    width='stretch',
                 )
 
             # Tableau croisé — afficher le tableau croisé correspondant au graphique empilé
@@ -1035,7 +1075,7 @@ def main():
         )
         # make labels inside the pie white and bold for readability on colored slices
         fig_global.update_traces(textinfo="percent+label", textfont=dict(color="white", size=12, family="Plus Jakarta Sans"), insidetextorientation='radial')
-        st.plotly_chart(fig_global, use_container_width=True, key="fig_global_tab3")
+        st.plotly_chart(fig_global, width='stretch', key="fig_global_tab3")
 
 if __name__ == "__main__":
     main()
