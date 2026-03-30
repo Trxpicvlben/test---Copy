@@ -1543,6 +1543,130 @@ def _plot_bivariate_stacked(ct: pd.DataFrame, title: str, subdomain_label: str =
 
 
 # =============================================================================
+# FILTRES SIDEBAR — liés uniquement à l'onglet Générale
+# =============================================================================
+
+def _clean_opts_copsoq(series: pd.Series) -> list:
+    """Retourne les valeurs uniques nettoyées d'une série (pour les selectbox)."""
+    out = {}
+    for raw in series.dropna().astype(str):
+        c = re.sub(r"\s+", " ", raw.strip())
+        if c and c.lower() not in ("nan", "non renseigne", "non renseigné"):
+            norm = c.casefold()
+            out.setdefault(norm, c)
+    return sorted(out.values(), key=str.casefold)
+
+
+def render_sidebar_copsoq(df_base: pd.DataFrame) -> pd.DataFrame:
+    """
+    Affiche les filtres dans la sidebar et renvoie le DataFrame filtré
+    pour l'onglet Générale uniquement.
+    Les autres onglets utilisent df_base complet (non filtré).
+    """
+    with st.sidebar:
+        st.markdown(
+            """<div style="font-family:'Fraunces',serif;font-size:1.15rem;font-style:italic;
+                    color:#0F2340;font-weight:400;margin-bottom:0.5rem;padding-bottom:0.6rem;
+                    border-bottom:2px solid #E4F0FB;">Filtres</div>
+           """,
+            unsafe_allow_html=True,
+        )
+
+        ALL = "Tous"
+
+        # ── Direction ────────────────────────────────────────────────────────
+        dir_col = _pick_existing_column(df_base, ["Direction"]) or _fuzzy_find_column(df_base, ["Direction"])
+        dirs = [ALL] + (_clean_opts_copsoq(df_base[dir_col]) if dir_col else [])
+        if st.session_state.get("copsoq_sb_dir") not in dirs:
+            st.session_state["copsoq_sb_dir"] = ALL
+        sel_dir = st.selectbox("Direction", dirs, key="copsoq_sb_dir")
+
+        # sous-ensemble dynamique pour les filtres cascadés
+        dep = df_base.copy()
+        if dir_col and sel_dir != ALL:
+            dep = dep[dep[dir_col].astype(str).str.strip() == sel_dir]
+
+        # ── Genre ────────────────────────────────────────────────────────────
+        genre_col = _fuzzy_find_column(df_base, ["Genre", "Sexe"])
+        genres = [ALL] + (_clean_opts_copsoq(dep[genre_col]) if genre_col and genre_col in dep.columns else [])
+        if st.session_state.get("copsoq_sb_genre") not in genres:
+            st.session_state["copsoq_sb_genre"] = ALL
+        sel_genre = st.selectbox("Genre", genres, key="copsoq_sb_genre")
+
+        # ── Tranche d'âge ────────────────────────────────────────────────────
+        age_col_raw = _find_age_numeric_col(dep)
+        tranche_age_col = "Tranche d'age" if "Tranche d'age" in dep.columns else None
+        sel_age = None
+        if age_col_raw:
+            age_s = pd.to_numeric(dep[age_col_raw], errors="coerce").dropna()
+            if not age_s.empty:
+                ab = (int(np.floor(age_s.min())), int(np.ceil(age_s.max())))
+                cur = st.session_state.get("copsoq_sb_age", ab)
+                if not isinstance(cur, tuple) or cur[0] < ab[0] or cur[1] > ab[1]:
+                    cur = ab
+                safe_val = (max(ab[0], int(cur[0])), min(ab[1], int(cur[1])))
+                sel_age = st.slider("Tranche d'âge", min_value=ab[0], max_value=ab[1], value=safe_val, key="copsoq_sb_age")
+        elif tranche_age_col:
+            tranches = [ALL] + _clean_opts_copsoq(dep[tranche_age_col])
+            if st.session_state.get("copsoq_sb_tranche") not in tranches:
+                st.session_state["copsoq_sb_tranche"] = ALL
+            sel_tranche = st.selectbox("Tranche d'âge", tranches, key="copsoq_sb_tranche")
+        else:
+            sel_tranche = ALL
+
+        # ── Ancienneté ───────────────────────────────────────────────────────
+        anc_col = "Tranche anciennete" if "Tranche anciennete" in dep.columns else None
+        sel_anc = ALL
+        if anc_col:
+            ancs = [ALL] + _clean_opts_copsoq(dep[anc_col])
+            if st.session_state.get("copsoq_sb_anc") not in ancs:
+                st.session_state["copsoq_sb_anc"] = ALL
+            sel_anc = st.selectbox("Ancienneté", ancs, key="copsoq_sb_anc")
+
+        st.markdown("<hr>", unsafe_allow_html=True)
+
+        # ── Bouton reset ─────────────────────────────────────────────────────
+        if st.button("↺ Réinitialiser", key="copsoq_sb_reset", use_container_width=True):
+            for k in ["copsoq_sb_dir", "copsoq_sb_genre", "copsoq_sb_age",
+                      "copsoq_sb_tranche", "copsoq_sb_anc"]:
+                st.session_state.pop(k, None)
+            st.rerun()
+
+    # ── Application des filtres ───────────────────────────────────────────────
+    out = df_base.copy()
+
+    if dir_col and sel_dir != ALL:
+        out = out[out[dir_col].astype(str).str.strip() == sel_dir]
+
+    if genre_col and genre_col in out.columns and sel_genre != ALL:
+        out = out[out[genre_col].astype(str).str.strip().str.lower() == sel_genre.lower()]
+
+    if sel_age and age_col_raw and age_col_raw in out.columns:
+        ages = pd.to_numeric(out[age_col_raw], errors="coerce")
+        out = out[(ages >= sel_age[0]) & (ages <= sel_age[1])]
+    elif not age_col_raw and tranche_age_col and tranche_age_col in out.columns:
+        if "sel_tranche" in dir() and sel_tranche != ALL:
+            out = out[out[tranche_age_col].astype(str).str.strip() == sel_tranche]
+
+    if anc_col and anc_col in out.columns and sel_anc != ALL:
+        out = out[out[anc_col].astype(str).str.strip() == sel_anc]
+
+    # ── Affichage de l'effectif filtré ───────────────────────────────────────
+    with st.sidebar:
+        n_f = len(out)
+        st.markdown(
+            f"""<div style="text-align:center;padding:0.7rem;background:#EDF5FD;border-radius:10px;margin-top:0.8rem;">
+            <span style="font-size:0.7rem;color:#6B88A8;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">
+                Effectif (Générale)</span><br>
+            <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.6rem;font-weight:800;color:#2f66b3;">{n_f}</span>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+
+    return out
+
+
+# =============================================================================
 # POINT D'ENTREE STREAMLIT
 # =============================================================================
 
@@ -1621,19 +1745,39 @@ tab_generales, tab_analyse_simple, tab_domaines_rps, tab_croissement = st.tabs(
 
 df = _ensure_tranche_anciennete(df_raw.copy())
 df_scores = df_scores_raw.copy()
-filtered_df = df.copy()
+
+# ── Sidebar : filtres liés uniquement à l'onglet Générale ────────────────────
+filtered_df_generale = render_sidebar_copsoq(df)
+
+# df_scores filtré selon les mêmes index que filtered_df_generale
+_common_idx_gen = filtered_df_generale.index.intersection(df_scores.index)
+filtered_scores_generale = df_scores.loc[_common_idx_gen]
+
+# Pour les autres onglets : données complètes (non filtrées)
+filtered_df    = df.copy()
 filtered_scores = df_scores.copy()
 
 with tab_generales:
-    # ── Titre section style Karasek ───────────────────────────────────────────
+    # ── Bandeau d'info filtre actif ───────────────────────────────────────────
+    if len(filtered_df_generale) < len(df):
+        st.markdown(
+            f"""<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;
+                    padding:8px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+                <span style="font-size:16px;">🔍</span>
+                <span style="font-size:0.84rem;color:#1D4ED8;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;">
+                    Filtres actifs — {len(filtered_df_generale)} répondant(s) sélectionné(s) sur {len(df)} au total
+                </span></div>""",
+            unsafe_allow_html=True,
+        )
+
     st.markdown('<div class="section-title">Données Générales de l\'Entreprise</div>', unsafe_allow_html=True)
 
-    kpi = build_general_indicators(df)
+    kpi = build_general_indicators(filtered_df_generale)
     age_moyen = kpi.get("age_moyen")
-    _age_col_present = _find_age_numeric_col(df)
+    _age_col_present = _find_age_numeric_col(filtered_df_generale)
     _age_numeric_ok = False
     if _age_col_present is not None:
-        _age_vals_check = pd.to_numeric(df[_age_col_present], errors="coerce")
+        _age_vals_check = pd.to_numeric(filtered_df_generale[_age_col_present], errors="coerce")
         _age_numeric_ok = not _age_vals_check.dropna().empty
 
     if _age_numeric_ok and isinstance(age_moyen, Real):
@@ -1784,7 +1928,8 @@ with tab_generales:
         global_rps = float(np.mean(domain_risk_vals)) if domain_risk_vals else np.nan
         return {"subdomains": subdomain_stats, "domains": domain_stats, "global_rps": global_rps, "mu_global": mu_global, "sigma_global": sigma_global}
 
-    zscore_data = _compute_zscore_metrics(filtered_scores)
+    # Utilise les scores filtrés pour l'onglet Générale
+    zscore_data = _compute_zscore_metrics(filtered_scores_generale)
 
     global_rps = zscore_data.get("global_rps", np.nan)
     if not pd.isna(global_rps):
@@ -1812,7 +1957,7 @@ with tab_generales:
             unsafe_allow_html=True,
             )
 
-    # ── Radar Charts ──────────────────────────────────────────────────────────
+    # ── Radar Charts (données filtrées) ───────────────────────────────────────
     st.markdown('<div class="section-title">Radar RPS — Vue d\'ensemble</div>', unsafe_allow_html=True)
 
     import plotly.graph_objects as go
@@ -1963,9 +2108,12 @@ with tab_generales:
         else:
             st.info("Aucune donnée disponible pour ce domaine.")
 
+# =============================================================================
+# TAB 2 — ANALYSE SIMPLE (données non filtrées)
+# =============================================================================
 with tab_analyse_simple:
     st.markdown('<div class="section-title">Statistiques univariées</div>', unsafe_allow_html=True)
-    analyse_df = filtered_df.copy() if "filtered_df" in locals() and not filtered_df.empty else df.copy()
+    analyse_df = filtered_df.copy()
 
     if analyse_df.empty:
         st.info("Aucune donnee disponible pour l'analyse univariee.")
@@ -2043,10 +2191,13 @@ with tab_analyse_simple:
                 st.pyplot(fig_uni, use_container_width=True)
                 plt.close(fig_uni)
 
+# =============================================================================
+# TAB 3 — DOMAINES RPS (données non filtrées)
+# =============================================================================
 with tab_domaines_rps:
     st.markdown('<div class="section-title">Domaines et sous-domaines RPS</div>', unsafe_allow_html=True)
-    socio_df = filtered_df.copy() if "filtered_df" in locals() else df.copy()
-    score_df = filtered_scores.copy() if "filtered_scores" in locals() else df_scores.copy()
+    socio_df = filtered_df.copy()
+    score_df = filtered_scores.copy()
     common_index = socio_df.index.intersection(score_df.index)
     socio_df = socio_df.loc[common_index]; score_df = score_df.loc[common_index]
 
@@ -2129,10 +2280,13 @@ with tab_domaines_rps:
                     if not cross_table.empty:
                         st.dataframe(_style_domain_table(cross_table), use_container_width=True)
 
+# =============================================================================
+# TAB 4 — CROISEMENT (données non filtrées)
+# =============================================================================
 with tab_croissement:
     st.markdown('<div class="section-title">Croisement socio-démographique</div>', unsafe_allow_html=True)
-    socio_df = filtered_df.copy() if "filtered_df" in locals() else df.copy()
-    score_df = filtered_scores.copy() if "filtered_scores" in locals() else df_scores.copy()
+    socio_df = filtered_df.copy()
+    score_df = filtered_scores.copy()
     common_index = socio_df.index.intersection(score_df.index)
     socio_df = socio_df.loc[common_index]; score_df = score_df.loc[common_index]
 
