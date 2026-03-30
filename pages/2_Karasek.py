@@ -636,16 +636,28 @@ def html_ls_n(pct, n, label):
     return f"""<div class="ls-card" style="border-top:3px solid {col};">
     <span class="kpi-label">{label}</span>
     <div class="kpi-value animate-number" style="color:{col};font-size:1.8rem;" data-target="{int(round(num))}" data-suffix="%" data-prefix="" data-decimals="0">{int(round(num))}%</div>
-    <div style="margin-top:0.3rem;font-size:0.78rem;font-weight:600;color:#4E6A88;">n = {int(n)}</div></div>"""
+    <div style="margin-top:0.3rem;font-size:0.78rem;font-weight:600;color:#4E6A88;">{int(n)}</div></div>"""
 
 def html_gauge(value, label, sublabel, inverted=False):
     """inverted=True : score élevé = risque (ex: Demande psychologique élevée = mauvais)."""
     t = max(0.0, min(100.0, float(value) if not pd.isna(value) else 0.0))
     d = int(round(t))
+
     if inverted:
-        col, bcls, btxt = ("#EF4444","alert","Élevée") if t>50 else ("#22C55E","good","Modérée")
+        if t > 60:
+            col, bcls, btxt = "#EF4444", "alert", "Élevée"
+        elif t > 40:
+            col, bcls, btxt = "#F97316", "moderate", "Modérée"
+        else:
+            col, bcls, btxt = "#22C55E", "good", "Faible"
     else:
-        col, bcls, btxt = ("#22C55E","good","Élevé") if t>50 else ("#EF4444","alert","Faible")
+        if t > 60:
+            col, bcls, btxt = "#22C55E", "good", "Bon"
+        elif t > 40:
+            col, bcls, btxt = "#F97316", "moderate", "Modérée"
+        else:
+            col, bcls, btxt = "#EF4444", "alert", "Mauvais"
+
     return f"""<div class="gauge-card">
     <div class="gauge-semi-wrap">
         <div class="gauge-semi-bg"></div>
@@ -655,7 +667,7 @@ def html_gauge(value, label, sublabel, inverted=False):
     <div class="gauge-value"><span class="gauge-counter" style="color:{col};">{d}</span><span class="gauge-pct">%</span></div>
     <div class="gauge-label">{label}</div><div class="gauge-sublabel">{sublabel}</div>
     <span class="gauge-badge {bcls}">{btxt}</span></div>"""
-
+    
 def html_prog(label, pct, color, n=0):
     v = max(0.0, min(100.0, float(pct) if not pd.isna(pct) else 0.0))
     return f"""<div style="margin-bottom:1rem;">
@@ -668,11 +680,9 @@ def html_prog(label, pct, color, n=0):
 def html_zone(label, pct, n, color):
     v = max(0.0, min(100.0, float(pct) if not pd.isna(pct) else 0.0))
     return f"""<div class="workzone-card" style="border-top:3px solid {color};">
-    <span class="kpi-label">{label}</span>
-    <div class="kpi-value animate-number" style="color:{color};font-size:1.8rem;" data-target="{int(round(v))}" data-suffix="%" data-prefix="" data-decimals="0">{int(round(v))}%</div>
-    <div style="margin-top:0.35rem;font-size:0.78rem;font-weight:600;color:#4E6A88;">{int(n)}</div></div>"""
-
-
+    <span style="font-size:0.8rem;color:{color};text-transform:uppercase;letter-spacing:0.09em;font-weight:700;margin-bottom:0.55rem;display:block;">{label}</span>
+    <div class="animate-number" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.8rem;font-weight:800;color:{color};line-height:1;letter-spacing:-0.04em;" data-target="{int(round(v))}" data-suffix="%" data-prefix="" data-decimals="0">{int(round(v))}%</div>
+    <div style="margin-top:0.35rem;font-size:0.78rem;font-weight:600;color:{color};">{int(n)}</div></div>"""
 # =============================================================================
 # PLOTLY HELPERS
 # =============================================================================
@@ -758,10 +768,14 @@ def get_pct_high(df, score_col):
     cat = f"{score_col}_theo_cat"
     if cat in df.columns:
         v = df[cat].dropna()
-        if len(v)>0: return float(v.isin(["Eleve","Élevé","Elevé","High"]).sum()/len(v)*100)
+        if len(v) > 0:
+            result = float(v.isin(["Eleve", "Élevé", "Elevé", "High"]).sum() / len(v) * 100)
+            return 100 - result if score_col == "Dem_score" else result
     if score_col in THRESHOLDS and score_col in df.columns:
-        v = pd.to_numeric(df[score_col],errors="coerce").dropna()
-        if len(v)>0: return float((v>THRESHOLDS[score_col]).sum()/len(v)*100)
+        v = pd.to_numeric(df[score_col], errors="coerce").dropna()
+        if len(v) > 0:
+            result = float((v > THRESHOLDS[score_col]).sum() / len(v) * 100)
+            return 100 - result if score_col == "Dem_score" else result
     return 0.0
 
 
@@ -982,7 +996,7 @@ with tab_quad:
     section_title("Indicateurs clés de stress au travail")
     g1,g2,g3 = st.columns(3)
     with g1: st.markdown(html_gauge(get_pct_high(df_sc,"Lat_score"),  "Autonomie décisionnelle", "Flexibilité et contrôle perçus",        inverted=False), unsafe_allow_html=True)
-    with g2: st.markdown(html_gauge(get_pct_high(df_sc,"Dem_score"),  "Charge mentale perçue",   "Intensité de la demande psychologique",  inverted=True),  unsafe_allow_html=True)
+    with g2: st.markdown(html_gauge(get_pct_high(df_sc,"Dem_score"),  "Charge mentale perçue",   "Intensité de la demande psychologique",  inverted=False),  unsafe_allow_html=True)
     with g3: st.markdown(html_gauge(get_pct_high(df_sc,"SS_score"),   "Cohésion d'équipe",       "Soutien social collègues & management",  inverted=False), unsafe_allow_html=True)
 
     # ─── Quadrants KPI ───────────────────────────────────────────────────────
