@@ -36,15 +36,16 @@ C = {
     "light_red": "#E85D35",
     "light_grn": "#6DCF7A",
     "dark_grn":  "#1B7A32",
+    "gray":      "#D5DADE22",
 }
 
 RESPONSE_ORDER  = ["Très insatisfait", "Insatisfait", "Satisfait", "Très satisfait"]
 RESPONSE_COLORS = {
     # mid-tone response colors
     "Très insatisfait": C["red"],            # mid red
-    "Insatisfait":      "#F29A7A",           # mid orange
-    "Satisfait":        "#A6D8A6",           # soft green
-    "Très satisfait":   "#3B8F5A",           # mid-dark green
+    "Insatisfait":      C["red"],           # mid orange
+    "Satisfait":        C["green"],           # soft green
+    "Très satisfait":   C["green"],           # mid-dark green
 }
 
 QUESTIONS = [
@@ -140,7 +141,8 @@ html,body,[class*="css"],.stApp{font-family:'Plus Jakarta Sans',sans-serif!impor
 .badge-red{background:#FEE2E2;color:#B91C1C}.badge-green{background:#DCFCE7;color:#15803D}.badge-blue{background:rgba(56,163,232,0.1);color:#38A3E8}
 .back-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:linear-gradient(135deg,#2f66b3,#4f8be4);color:#ffffff!important;font-weight:700;text-decoration:none!important;box-shadow:0 6px 18px rgba(47,102,179,0.12);border:1px solid rgba(79,139,228,0.12)}
 .back-btn:hover{filter:brightness(0.95);box-shadow:0 8px 22px rgba(47,102,179,0.14)}
-.back-btn:focus{outline:none;box-shadow:0 8px 22px rgba(47,102,179,0.14)}
+.back-btn:focus{outline:none;box-shadow:0 8px 22px rgba(47,102,179,0.14)
+.axe_title{color:"#E6350D"!important}}
 
 /* Shared spacing for risk/strength items (applies to both columns) */
 .q-items{margin-top:20px}
@@ -271,15 +273,15 @@ def find_col(df, target):
 def recode_response(series):
     out = pd.Series(pd.NA, index=series.index, dtype="object")
     num = pd.to_numeric(series, errors="coerce")
-    out.loc[num == 1] = "Très insatisfait"
+    out.loc[num == 1] = "Insatisfait"
     out.loc[num == 2] = "Insatisfait"
     out.loc[num == 3] = "Satisfait"
-    out.loc[num == 4] = "Très satisfait"
+    out.loc[num == 4] = "Satisfait"
     text_map = {
-        "tresinsatisfait": "Très insatisfait",
+        "tresinsatisfait": "Insatisfait",
         "insatisfait":     "Insatisfait",
         "satisfait":       "Satisfait",
-        "tressatisfait":   "Très satisfait",
+        "tressatisfait":   "Satisfait",
     }
     normed = series.astype(str).map(normalize)
     for k, v in text_map.items():
@@ -416,9 +418,7 @@ def dual_status_bar(neg_pct, pos_pct, neg_color, pos_color):
                 <div style="width:{n_w:.2f}%;height:100%;background:{neg_color};float:left;"></div>
                 <div style="width:{p_w:.2f}%;height:100%;background:{pos_color};float:right;"></div>
             </div>
-            <div style="min-width:70px;text-align:right;font-size:12px;color:{C['muted']};">
-                <strong style="color:{neg_color};">{n:.1f}%</strong> / <strong style="color:{pos_color};">{p:.1f}%</strong>
-            </div>
+
         </div>
         """
 # ------------------------------
@@ -785,12 +785,12 @@ def main():
 
         # Scores par dimension (normalisé 0–100 %) — keep these gauges
         if score_cols:
-            sec_title("Scores par dimension (normalisé 0–100 %)")
+            sec_title("Scores par dimension ")
             gauge_cols = st.columns(len(score_cols))
             for i, sc in enumerate(score_cols):
                 # compute normalized percent (1..4 -> 0..100)
                 try:
-                    avg = df_f[sc].mean()
+                    avg = df_f[sc].median()
                 except Exception:
                     avg = float('nan')
                 pct = (avg - 1) / 3 * 100 if not pd.isna(avg) else 0
@@ -811,42 +811,22 @@ def main():
         # The genre pie chart was removed per user request.
         # (Previously: Répartition par genre)
 
-        # Distribution globale des réponses (kept)
-        sec_title("Distribution globale des réponses")
-        all_reps = []
-        for q, col in question_map.items():
-            all_reps.append(recode_response(df_f[col]))
-        all_reps_s = pd.concat(all_reps)
-        dist = all_reps_s.value_counts(normalize=True).reindex(RESPONSE_ORDER) * 100
-        fig_dist = go.Figure()
-        for label in RESPONSE_ORDER:
-            fig_dist.add_trace(go.Bar(
-                x=[label], y=[dist.get(label, 0)],
-                marker_color=RESPONSE_COLORS[label], opacity=0.88,
-                # show percent inside the bar in white and bold, centered
-                texttemplate="<b>%{y:.1f}%</b>", textposition="inside", insidetextanchor="middle",
-                textfont=dict(color="white", size=12, family="Plus Jakarta Sans"),
-                name=label, showlegend=False,
-            ))
-        fig_dist = apply_layout(fig_dist, f"Toutes questions confondues · {n * len(question_map):,} réponses totales", height=280)
-        fig_dist.update_yaxes(title_text="%", range=[0, 60])
-        st.plotly_chart(fig_dist, width='stretch')
+
 
     with tab2:
 
         # ── JAUGES RISQUES / FORCES ──────────────────────────────────────────
-        sec_title("Questions les plus critiques & points forts")
+        sec_title("Axes d’amélioration  & Atouts clés")
         col_risk, col_str = st.columns(2)
 
         with col_risk:
             st.markdown(textwrap.dedent("""
             <div class="risk-card">
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem;">
-                    <span class="badge badge-red">RISQUES</span>
-                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;">Questions les plus critiques</span>
+                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;"></span>
                 </div>
                 <p style="font-size:0.74rem;color:#6B88A8;margin:0 0 0.8rem;">
-                    % cumulé <strong>Insatisfait + Très insatisfait</strong>
+                </strong>
                 </p>
             </div>
             """), unsafe_allow_html=True)
@@ -860,26 +840,23 @@ def main():
             </style>
             <div class="risk-card q-section">
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">
-                    <span class="badge badge-red">RISQUES</span>
-                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;">Questions les plus critiques</span>
+                    <span style="color: red;"><b>Axes d’amélioration prioritaires</b></span>
+                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;"></span>
                 </div>
-                <p style="font-size:0.74rem;color:#6B88A8;margin:0 0 0.8rem;">
-                    % cumulé <strong>Insatisfait + Très insatisfait</strong>
-                </p>
+
             </div>
             """)
             items = []
             for _, row in top_risks.iterrows():
                 # use mid-tone colors for the negative/positive bars
-                bar = dual_status_bar(row["pct_neg"], row["pct_pos"], C["red"], C["green"])
+                bar = dual_status_bar(row["pct_neg"], row["pct_pos"], C["red"], C["gray"])
                 bar = textwrap.dedent(bar).strip()
                 item_html = textwrap.dedent(f"""
                 <div class="item-row" style="border-left:3px solid {C['red']};">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
                         <span style="font-size:0.79rem;color:#3B5878;font-weight:600;line-height:1.4;">{row['question']}</span>
                         <div style="text-align:right;line-height:1.1;">
-                            <div style="font-size:0.9rem;font-weight:800;color:{C['red']};">{row['pct_neg']:.1f}% insatisfaits</div>
-                            <div style="font-size:0.75rem;color:{C['green']};margin-top:0.1rem;">{row['pct_pos']:.1f}% satisfaits</div>
+                            <div style="font-size:0.9rem;font-weight:800;color:{C['red']};">{row['pct_neg']:.0f}% insatisfaits</div>
                         </div>
                     </div>
                     {bar}
@@ -895,12 +872,9 @@ def main():
             st.markdown(textwrap.dedent("""
             <div class="strength-card">
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.3rem;">
-                    <span class="badge badge-green">FORCES</span>
-                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;">Points forts à valoriser</span>
+                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;"></span>
                 </div>
-                <p style="font-size:0.74rem;color:#6B88A8;margin:0 0 0.8rem;">
-                    % cumulé <strong>Satisfait + Très satisfait</strong>
-                </p>
+
             </div>
             """), unsafe_allow_html=True)
 
@@ -912,26 +886,23 @@ def main():
             </style>
             <div class="strength-card q-section">
                 <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">
-                    <span class="badge badge-green">FORCES</span>
-                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;">Points forts à valoriser</span>
+                    <span style="color: green;"><b>Atouts clés à mettre en avant</b></span>
+                    <span style="font-family:'DM Serif Display',serif;font-style:italic;font-size:1rem;color:#0F2340;"></span>
                 </div>
-                <p style="font-size:0.74rem;color:#6B88A8;margin:0 0 0.8rem;">
-                    % cumulé <strong>Satisfait + Très satisfait</strong>
-                </p>
+            
             </div>
             """)
             items = []
             for _, row in top_strengths.iterrows():
                 # use mid-tone colors for the bars
-                bar = dual_status_bar(row["pct_neg"], row["pct_pos"], C["red"], C["green"])
+                bar = dual_status_bar(row["pct_neg"], row["pct_pos"], C["gray"], C["green"])
                 bar = textwrap.dedent(bar).strip()
                 item_html = textwrap.dedent(f"""
                 <div class="item-row" style="border-left:3px solid {C['green']};">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
                         <span style="font-size:0.79rem;color:#3B5878;font-weight:600;line-height:1.4;">{row['question']}</span>
                         <div style="text-align:right;line-height:1.1;">
-                            <div style="font-size:0.9rem;font-weight:800;color:{C['green']};">{row['pct_pos']:.1f}% satisfaits</div>
-                            <div style="font-size:0.75rem;color:{C['red']};margin-top:0.1rem;">{row['pct_neg']:.1f}% insatisfaits</div>
+                            <div style="font-size:0.9rem;font-weight:800;color:{C['green']};">{row['pct_pos']:.0f}% satisfaits</div>
                         </div>
                     </div>
                     {bar}
