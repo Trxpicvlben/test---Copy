@@ -173,10 +173,10 @@ html,body,[class*="css"],.stApp{font-family:'Plus Jakarta Sans',sans-serif!impor
 
 /* Titre de section */
 .section-title{display:flex;align-items:center;gap:0.7rem;font-family:'Fraunces',Georgia,serif!important;
-  font-style:italic!important;font-size:1.25rem!important;color:#0F2340!important;
-  margin:1.6rem 0 1rem!important;padding-bottom:0.65rem!important;border-bottom:2px solid #dde5f2!important}
+font-style:italic!important;font-size:1.25rem!important;color:#0F2340!important;
+margin:1.6rem 0 1rem!important;padding-bottom:0.65rem!important;border-bottom:2px solid #dde5f2!important}
 .section-title::before{content:'';display:inline-block;width:4px;height:22px;
-  background:linear-gradient(180deg,#2f66b3 0%,#4f8be4 100%);border-radius:2px;flex-shrink:0}
+background:linear-gradient(180deg,#2f66b3 0%,#4f8be4 100%);border-radius:2px;flex-shrink:0}
 
 /* KPI cards */
 .kpi-card,.gauge-card{background:#fff;border:1px solid #dde5f2;border-radius:12px;padding:12px}
@@ -191,24 +191,24 @@ html,body,[class*="css"],.stApp{font-family:'Plus Jakarta Sans',sans-serif!impor
 
 /* Bouton retour */
 .back-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:14px;
-  background:linear-gradient(135deg,#2f66b3,#4f8be4);color:#ffffff!important;font-weight:700;
-  text-decoration:none!important;box-shadow:0 6px 18px rgba(47,102,179,0.12)}
+background:linear-gradient(135deg,#2f66b3,#4f8be4);color:#ffffff!important;font-weight:700;
+text-decoration:none!important;box-shadow:0 6px 18px rgba(47,102,179,0.12)}
 
 /* Items risques / atouts */
 .q-items{margin-top:20px}
 .q-items .item-row{margin-bottom:22px;padding:12px 16px;border-radius:10px;
-  background:#fff;box-shadow:0 6px 18px rgba(16,24,40,0.03)}
+background:#fff;box-shadow:0 6px 18px rgba(16,24,40,0.03)}
 
 /* Onglets */
 [data-baseweb="tab-list"]{background:#FFFFFF!important;border-radius:12px!important;
-  padding:4px!important;gap:3px!important;border:1px solid #dde5f2!important;
-  box-shadow:0 2px 8px rgba(47,102,179,0.07)!important}
+padding:4px!important;gap:3px!important;border:1px solid #dde5f2!important;
+box-shadow:0 2px 8px rgba(47,102,179,0.07)!important}
 [data-baseweb="tab"]{font-family:'Plus Jakarta Sans',sans-serif!important;font-weight:600!important;
-  font-size:0.88rem!important;color:#6B88A8!important;border-radius:9px!important;
-  padding:0.5rem 1.4rem!important;transition:all 0.18s!important}
+font-size:0.88rem!important;color:#6B88A8!important;border-radius:9px!important;
+padding:0.5rem 1.4rem!important;transition:all 0.18s!important}
 [aria-selected="true"][data-baseweb="tab"]{background:linear-gradient(135deg,#2f66b3,#4f8be4)!important;
-  color:#FFFFFF!important;font-weight:700!important;
-  box-shadow:0 3px 12px rgba(47,102,179,0.30)!important}
+color:#FFFFFF!important;font-weight:700!important;
+box-shadow:0 3px 12px rgba(47,102,179,0.30)!important}
 [data-baseweb="tab-highlight"],[data-baseweb="tab-border"]{display:none!important}
 """
 
@@ -293,8 +293,8 @@ def find_col(df: pd.DataFrame, target: str):
 def recode_to_2_classes(series: pd.Series) -> pd.Series:
     """
     Recode les réponses originales (1–4 ou textuelles) en 2 classes :
-      - Insatisfait : modalités 1, 2 / "Très insatisfait" / "Insatisfait"
-      - Satisfait   : modalités 3, 4 / "Satisfait" / "Très satisfait"
+    - Insatisfait : modalités 1, 2 / "Très insatisfait" / "Insatisfait"
+    - Satisfait   : modalités 3, 4 / "Satisfait" / "Très satisfait"
     Retourne une Series avec les valeurs "Insatisfait" ou "Satisfait" (ou NA).
     """
     out = pd.Series(pd.NA, index=series.index, dtype="object")
@@ -318,10 +318,10 @@ def recode_to_2_classes(series: pd.Series) -> pd.Series:
 def add_derived_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
     Ajoute des colonnes dérivées si elles n'existent pas déjà :
-      - TrancheAge         (depuis Age)
-      - Classe_Anciennete  (depuis Anciennete)
-      - IMC                (depuis Poids + Taille)
-      - Categorie_IMC      (depuis IMC)
+    - TrancheAge         (depuis Age)
+    - Classe_Anciennete  (depuis Anciennete)
+    - IMC                (depuis Poids + Taille)
+    - Categorie_IMC      (depuis IMC)
     Copie aussi les variantes orthographiques sous un nom standard.
     """
     out = df.copy()
@@ -443,8 +443,8 @@ def get_renamed_question(question_text: str) -> str:
 def question_stats(df: pd.DataFrame, question_map: dict) -> pd.DataFrame:
     """
     Calcule pour chaque question :
-      - pct_insatisfait : % de répondants "Insatisfait"
-      - pct_satisfait   : % de répondants "Satisfait"
+    - pct_insatisfait : % de répondants "Insatisfait"
+    - pct_satisfait   : % de répondants "Satisfait"
     Retourne un DataFrame trié par pct_satisfait croissant.
     """
     rows = []
@@ -492,14 +492,14 @@ def kpi_card(label: str, value, color: str = None, suffix: str = "", decimals: i
     )
     st.markdown(f"""
     <div class="kpi-card">
-      <div class="kpi-label">{label}</div>
-      <div class="kpi-value" style="color:{color};">{disp}</div>
-      {sub_html}
+    <div class="kpi-label">{label}</div>
+    <div class="kpi-value" style="color:{color};">{disp}</div>
+    {sub_html}
     </div>""", unsafe_allow_html=True)
 
 
 def semi_gauge(pct: float, color: str, label: str, sublabel: str,
-               key: str = "", badge_override: tuple = None) -> None:
+            key: str = "", badge_override: tuple = None) -> None:
     """
     Affiche une jauge semi-circulaire SVG.
     badge_override : tuple (bg, text_color, label_badge) pour forcer le badge.
@@ -515,59 +515,50 @@ def semi_gauge(pct: float, color: str, label: str, sublabel: str,
         badge_bg, badge_c, badge_t = badge_override
     elif pct > 65:
         badge_bg, badge_c, badge_t = ("#DCFCE7", "#15803D", "Élevé")
-    elif pct > 40:
-        badge_bg, badge_c, badge_t = ("#FEE2E2", "#B91C1C", "Moyen")
     else:
         badge_bg, badge_c, badge_t = ("#FEE2E2", "#B91C1C", "Faible")
 
-    stroke_color = C["green"] if badge_t == "Élevé" else C["red"]
-
+    stroke_color = C["green"] 
     st.markdown(f"""
     <div class="gauge-card">
-      <svg width="176" height="96" style="display:block;margin:0 auto;">
+    <svg width="176" height="96" style="display:block;margin:0 auto;">
         <path d="M {cx-r} {cy} A {r} {r} 0 0 1 {cx+r} {cy}"
-          fill="none" stroke="#EDF5FD" stroke-width="12" stroke-linecap="round"/>
+        fill="none" stroke="#EDF5FD" stroke-width="12" stroke-linecap="round"/>
         {"<path d='" + arc + "' fill='none' stroke='" + stroke_color + "' stroke-width='12' stroke-linecap='round'/>" if arc else ""}
         <text x="{cx}" y="76" text-anchor="middle" font-size="23" font-weight="800"
-          fill="{stroke_color}" font-family="Fraunces, serif">{pct:.0f}</text>
+        fill="{stroke_color}" font-family="Fraunces, serif">{pct:.0f}%</text>
         <text x="{cx}" y="92" text-anchor="middle" font-size="10" fill="#6B88A8"
-          font-family="Plus Jakarta Sans">%</text>
-      </svg>
-      <div style="font-weight:700;font-size:0.82rem;color:{C['text']};line-height:1.35;
-                  text-align:center;margin-top:0.15rem;">{label}</div>
-      <div style="font-size:0.7rem;color:{C['muted']};text-align:center;
-                  margin:0.15rem 0 0.45rem;line-height:1.4;">{sublabel}</div>
-      <div style="text-align:center;">
+        font-family="Plus Jakarta Sans"></text>
+    </svg>
+    <div style="font-weight:700;font-size:0.82rem;color:{C['text']};line-height:1.35;
+                text-align:center;margin-top:0.15rem;">{label}</div>
+    <div style="font-size:0.7rem;color:{C['muted']};text-align:center;
+                margin:0.15rem 0 0.45rem;line-height:1.4;">{sublabel}</div>
+    <div style="text-align:center;">
         <span class="badge" style="background:{badge_bg};color:{badge_c};">{badge_t}</span>
-      </div>
+    </div>
     </div>""", unsafe_allow_html=True)
 
 
-def dual_status_bar(ins_pct: float, sat_pct: float) -> str:
-    """
-    Retourne un fragment HTML : barre bicolore Insatisfait | Satisfait.
-    Les deux valeurs sont proportionnelles l'une à l'autre (pas forcément 100%).
-    """
-    try:
-        n = max(0.0, float(ins_pct))
-    except Exception:
-        n = 0.0
-    try:
-        p = max(0.0, float(sat_pct))
-    except Exception:
-        p = 0.0
-    total = n + p
-    if total == 0:
-        return '<div style="height:8px;border-radius:8px;background:#E0E7EF;margin-top:6px"></div>'
-    n_w = n / total * 100
-    p_w = p / total * 100
+def dual_status_bar(pct_ins, pct_sat, highlight="red"):
+    gray = "#D5DADE4C"  # gris plein, pas de transparence
+    
+    red_color = "#FF4D4F" if highlight == "red" else gray
+    green_color = "#00B400" if highlight == "green" else gray
+
     return f"""
-    <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-      <div style="flex:1;background:#f1f5f9;border-radius:8px;overflow:hidden;height:12px;">
-        <div style="width:{n_w:.1f}%;height:100%;background:{C['red']};float:left;"></div>
-        <div style="width:{p_w:.1f}%;height:100%;background:{C['green']};float:right;"></div>
-      </div>
-    </div>"""
+    <div style="display:flex;width:100%;height:8px;border-radius:6px;overflow:hidden;">
+        <div style="
+            width:{pct_ins}%;
+            background:{red_color};
+        "></div>
+        <div style="
+            width:{pct_sat}%;
+            background:{green_color};
+        "></div>
+    </div>
+    """
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -608,7 +599,7 @@ def chart_bar_univarie(series: pd.Series, var_label: str) -> go.Figure:
     total = counts["n"].sum()
     counts["pct"] = counts["n"] / total * 100
     palette = [C["blue"], C["orange"], C["purple"], C["green"],
-               "#F2B86B", "#4EC0D9", "#FB9A6B", "#84CC6A"]
+            "#F2B86B", "#4EC0D9", "#FB9A6B", "#84CC6A"]
     fig = go.Figure()
     for i, row in counts.iterrows():
         fig.add_trace(go.Bar(
@@ -661,7 +652,7 @@ def chart_stacked_2classes(crosstab: pd.DataFrame, title: str, y_axis_label: str
             xanchor="center",
         ),
         xaxis=dict(range=[0, 100], title="Pourcentage (%)", ticksuffix="%",
-                   showgrid=True, gridcolor="#F5F7FA"),
+                showgrid=True, gridcolor="#F5F7FA"),
         yaxis=dict(title=y_axis_label, showgrid=False),
         legend_title="Réponses",
         plot_bgcolor="#FAFCFF", paper_bgcolor="rgba(0,0,0,0)",
@@ -699,12 +690,12 @@ def chart_bivariate_domain(df: pd.DataFrame, socio_col: str,
 
     return chart_stacked_2classes(
         ct,
-        title=f"{short_q} par {socio_col}",  # Ex: "Clarté des missions par Département"
+        title=f"{domain} par {socio_col}",  # Ex: "Clarté des missions par Département"
         y_axis_label=socio_col,
     )
 
 def chart_bivariate_question(df: pd.DataFrame, socio_col: str,
-                              question: str, question_map: dict) -> go.Figure:
+                            question: str, question_map: dict) -> go.Figure:
     """
     Graphique bivarié : répartition Satisfait/Insatisfait pour UNE question,
     par catégorie de variable socio.
@@ -839,8 +830,8 @@ def render_filters(df: pd.DataFrame) -> pd.DataFrame:
 def render_tab_overview(df_f: pd.DataFrame, question_map: dict) -> None:
     """
     Onglet 1 — Vue d'ensemble :
-      - KPIs démographiques + score global satisfait
-      - Jauges % satisfaits par domaine
+    - KPIs démographiques + score global satisfait
+    - Jauges % satisfaits par domaine
     """
     n = len(df_f)
     pct_sats = compute_pct_satisfait(df_f, question_map)
@@ -850,27 +841,30 @@ def render_tab_overview(df_f: pd.DataFrame, question_map: dict) -> None:
     # ── Données démographiques ──────────────────────────────────────────────
     genre_col = find_col(df_f, "Genre")
     age_col   = find_col(df_f, "Age")
-    male_pct = female_pct = 0.0
-    male_count = female_count = 0
+    anciennete_col = find_col(df_f, "Anciennete")
+    male_pct =0.0
+    male_count = 0
+    anciennete_avg = None
     age_avg = None
 
     if genre_col:
         gs = df_f[genre_col].dropna().astype(str)
         counts_g = gs.value_counts()
         male_key   = next((k for k in counts_g.index if "hom" in k.lower()), None)
-        female_key = next((k for k in counts_g.index if "fem" in k.lower()), None)
         total_g = counts_g.sum()
         if male_key:
             male_count = int(counts_g[male_key])
             male_pct = male_count / total_g * 100
-        if female_key:
-            female_count = int(counts_g[female_key])
-            female_pct = female_count / total_g * 100
 
     if age_col:
         ages = pd.to_numeric(df_f[age_col], errors="coerce").dropna()
         if not ages.empty:
-            age_avg = int(round(ages.mean()))
+            age_avg = int(round(ages.median()))
+
+    if anciennete_col:
+        anciennete = pd.to_numeric(df_f[anciennete_col], errors="coerce").dropna()
+        if not anciennete.empty:
+            anciennete_avg = int(round(anciennete.mean()))
 
     # ── KPI row (Score global + démographie) ───────────────────────────────
     sec_title("Indicateurs clés")
@@ -879,43 +873,29 @@ def render_tab_overview(df_f: pd.DataFrame, question_map: dict) -> None:
         kpi_card("Répondants", n, C["blue"])
     with kpi_cols[1]:
         color_global = C["green"] if pct_global >= 50 else C["red"]
-        kpi_card("Satisfaction globale", pct_global, color_global, "%", decimals=1,
-                 sub="% de répondants satisfaits")
+        kpi_card("Satisfaction globale", pct_global, color_global, "%", decimals=0,
+                sub="")
     with kpi_cols[2]:
-        kpi_card(f"Hommes ({male_count})", male_pct, C["blue"], "%", decimals=1)
+        kpi_card(f"Hommes ({male_count})", male_pct, C["blue"], "%", decimals=0)
     with kpi_cols[3]:
-        kpi_card(f"Femmes ({female_count})", female_pct, C["orange"], "%", decimals=1)
+        kpi_card(f"Anciennete ({anciennete_avg:.0f} ans)", anciennete_avg, C["orange"], " ans", decimals=0)
     with kpi_cols[4]:
         kpi_card("Âge moyen", f"{age_avg} ans" if age_avg else "—", C["text"])
 
     # ── Jauges % satisfaits par domaine ────────────────────────────────────
     if score_cols:
-        sec_title("Satisfaction par domaine (% satisfaits)")
+        sec_title("Satisfaction par domaine: Pourcentage d'Employés Satisfaits")
         gauge_cols = st.columns(len(score_cols))
         for i, domain in enumerate(score_cols):
             pct = pct_sats.get(domain, 0.0)
             display_pct = int(pct)
-            if pct > 65:
-                badge = ("#DCFCE7", "#15803D", "Élevé")
-            elif pct > 40:
-                badge = ("#FEE2E2", "#B91C1C", "Moyen")
-            else:
-                badge = ("#FEE2E2", "#B91C1C", "Faible")
+            badge = ("", "#15803D", "satisfait")
             with gauge_cols[i]:
-                semi_gauge(display_pct, C["green"] if badge[2] == "Élevé" else C["red"],
-                           domain, "% répondants satisfaits",
-                           key=f"g_{domain}", badge_override=badge)
+                semi_gauge(display_pct, C["green"],
+                        domain, "",
+                        key=f"g_{domain}", badge_override=badge)
 
-
-def render_tab_detail(df_f: pd.DataFrame, question_map: dict) -> None:
-    """
-    Onglet 2 — Analyses détaillées :
-      - Axes d'amélioration & Atouts clés (top 5)
-      - Analyse univariée (distribution socio)
-      - Analyse bivariée (par domaine OU par question, selon socio)
-    """
-    socio_cols = [c for c in SOCIO_CANDIDATES if c in df_f.columns]
-    score_cols = [s for s in QUESTION_TO_GROUP if s in df_f.columns]
+    score_cols = [s for s in SCORE_GROUPS if s in df_f.columns]
     q_stats    = question_stats(df_f, question_map)
     top_risks     = q_stats.nsmallest(5, "pct_sat") if not q_stats.empty else pd.DataFrame()
     top_strengths = q_stats.nlargest(5, "pct_sat")  if not q_stats.empty else pd.DataFrame()
@@ -935,24 +915,24 @@ def render_tab_detail(df_f: pd.DataFrame, question_map: dict) -> None:
         <style>
         .q-items {{ margin-top:18px;display:block }}
         .q-items .item-row {{ margin-bottom:18px;padding:10px 12px;border-radius:10px;
-          background:#fff;box-shadow:0 6px 18px rgba(16,24,40,0.03) }}
+        background:#fff;box-shadow:0 6px 18px rgba(16,24,40,0.03) }}
         </style>
         <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;">
-          <span style="color:{color};"><b>{title}</b></span>
+        <span style="color:{color};"><b>{title}</b></span>
         </div>
         """)
         items_html = []
         for _, row in df_items.iterrows():
-            bar = dual_status_bar(row["pct_ins"], row["pct_sat"]).strip()
+            bar = dual_status_bar(row["pct_ins"],row["pct_sat"],highlight="red" if is_risk else "green".strip())
             items_html.append(textwrap.dedent(f"""
             <div class="item-row" style="border-left:3px solid {color};">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:0.5rem;">
                 <span style="font-size:0.79rem;color:#3B5878;font-weight:600;line-height:1.4;">
-                  {row['question']}</span>
+                {row['question']}</span>
                 <div style="font-size:0.9rem;font-weight:800;color:{color};">
-                  {row[pct_key]:.0f}% {pct_label}</div>
-              </div>
-              {bar}
+                {row[pct_key]:.0f}% {pct_label}</div>
+            </div>
+            {bar}
             </div>
             """))
         full_html = header + "<div class='q-items'>" + "".join(items_html) + "</div>"
@@ -963,6 +943,18 @@ def render_tab_detail(df_f: pd.DataFrame, question_map: dict) -> None:
         _render_item_list(top_risks, is_risk=True)
     with col_str:
         _render_item_list(top_strengths, is_risk=False)
+
+
+def render_tab_detail(df_f: pd.DataFrame, question_map: dict) -> None:
+    """
+    Onglet 2 — Analyses détaillées :
+    - Axes d'amélioration & Atouts clés (top 5)
+    - Analyse univariée (distribution socio)
+    - Analyse bivariée (par domaine OU par question, selon socio)
+    """
+    socio_cols = [c for c in SOCIO_CANDIDATES if c in df_f.columns]
+    score_cols = [s for s in SCORE_GROUPS if s in df_f.columns]
+
 
     # ── Analyse univariée ───────────────────────────────────────────────────
     sec_title("Analyse univariée — variables sociodémographiques")
@@ -995,12 +987,12 @@ def render_tab_detail(df_f: pd.DataFrame, question_map: dict) -> None:
     # Sélecteur : Domaine entier OU question spécifique
     view_mode = st.radio(
         "Niveau d'analyse",
-        ["Par Domaine", "Par Question"],
+        ["Vue domaine (toutes les questions)", "Vue question (une question du domaine)"],
         horizontal=True,
         key="bi_mode",
     )
 
-    if view_mode.startswith("Par domaine"):
+    if view_mode.startswith("Vue domaine"):
         # --- Graphique par domaine (toutes les questions agrégées) ---
         fig = chart_bivariate_domain(df_f, sel_socio, sel_domain, question_map)
         st.plotly_chart(fig, use_container_width=True)
@@ -1011,7 +1003,7 @@ def render_tab_detail(df_f: pd.DataFrame, question_map: dict) -> None:
         if not qs_in_domain:
             st.warning("Aucune question disponible pour ce domaine.")
         else:
-            sel_q = st.selectbox("", qs_in_domain, key="bi_question")
+            sel_q = st.selectbox("Question du domaine", qs_in_domain, key="bi_question")
             fig = chart_bivariate_question(df_f, sel_socio, sel_q, question_map)
             st.plotly_chart(fig, use_container_width=True)
 
@@ -1031,14 +1023,14 @@ def render_tab_detail(df_f: pd.DataFrame, question_map: dict) -> None:
                     return "#ffffff" if lum < 0.65 else C["text"]
 
                 html_rows = ['<div style="overflow:auto;padding-top:6px;">',
-                             '<table style="border-collapse:separate;border-spacing:8px;width:100%;'
-                             'font-family:Plus Jakarta Sans,sans-serif;">',
-                             '<thead><tr>',
-                             f'<th style="text-align:left;padding:8px 12px;color:{C["muted"]};'
-                             f'font-weight:600;">{sel_socio}</th>']
+                            '<table style="border-collapse:separate;border-spacing:8px;width:100%;'
+                            'font-family:Plus Jakarta Sans,sans-serif;">',
+                            '<thead><tr>',
+                            f'<th style="text-align:left;padding:8px 12px;color:{C["muted"]};'
+                            f'font-weight:600;">{sel_socio}</th>']
                 for resp in RESPONSE_CLASSES:
                     html_rows.append(f'<th style="text-align:center;padding:8px 12px;'
-                                     f'color:{C["muted"]};font-weight:600;">{resp}</th>')
+                                    f'color:{C["muted"]};font-weight:600;">{resp}</th>')
                 html_rows.append('</tr></thead><tbody>')
                 for grp in counts.index:
                     html_rows.append('<tr>')
@@ -1058,35 +1050,6 @@ def render_tab_detail(df_f: pd.DataFrame, question_map: dict) -> None:
                 h = min(600, 48 + len(counts) * 44)
                 components.html("\n".join(html_rows), height=h)
 
-
-def render_tab_final(df_f: pd.DataFrame, question_map: dict) -> None:
-    """
-    Onglet 3 — Analyse finale :
-      - Camembert global satisfaits / insatisfaits
-      - Tableau récapitulatif par domaine
-    """
-    st.header("Analyse finale")
-    pct_sats = compute_pct_satisfait(df_f, question_map)
-    pct_global = pct_sats.get("Global", 0.0)
-
-    # Camembert
-    fig = chart_pie_global(pct_global)
-    st.plotly_chart(fig, use_container_width=True)
-
-    # Tableau récap par domaine
-    sec_title("Récapitulatif par domaine")
-    recap_rows = [
-        {
-            "Domaine": domain,
-            "% Satisfaits": f"{pct_sats.get(domain, 0):.1f}%",
-            "Niveau": "Élevé" if pct_sats.get(domain, 0) > 65
-                      else ("Moyen" if pct_sats.get(domain, 0) > 40 else "Faible"),
-        }
-        for domain in SCORE_GROUPS
-        if domain in df_f.columns
-    ]
-    if recap_rows:
-        st.dataframe(pd.DataFrame(recap_rows), use_container_width=True, hide_index=True)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1114,13 +1077,18 @@ def main():
 
     # ── Import du fichier Excel ─────────────────────────────────────────────
     uploaded = st.file_uploader("Importer un fichier Excel (.xlsx)", type=["xlsx", "xls"])
-    if uploaded is None:
+    if uploaded is not None:
+        # Nouveau fichier importé → on charge et on stocke dans session_state
+        df_raw = load_excel(uploaded)
+        df_raw = add_derived_columns(df_raw)
+        st.session_state["qvt_df"] = df_raw          # ← persistance inter-pages
+
+    if "qvt_df" not in st.session_state:
         st.info("Importez votre fichier Excel pour démarrer l'analyse.")
         st.stop()
 
-    # Chargement, enrichissement et scoring
-    df_raw = load_excel(uploaded)
-    df_raw = add_derived_columns(df_raw)
+    # À partir d'ici, on lit toujours depuis session_state
+    df_raw = st.session_state["qvt_df"]
     question_map = resolve_questions(df_raw)
 
     if not question_map:
@@ -1137,7 +1105,7 @@ def main():
         st.stop()
 
     # ── Onglets ────────────────────────────────────────────────────────────
-    tab1, tab2, tab3 = st.tabs(["Vue d'ensemble", "Analyses détaillées", "Analyse finale"])
+    tab1, tab2 = st.tabs(["Vue d'ensemble", "Analyses détaillées"])
 
     with tab1:
         render_tab_overview(df_f, question_map)
@@ -1145,8 +1113,6 @@ def main():
     with tab2:
         render_tab_detail(df_f, question_map)
 
-    with tab3:
-        render_tab_final(df_f, question_map)
 
 
 if __name__ == "__main__":
