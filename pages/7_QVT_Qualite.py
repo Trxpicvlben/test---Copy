@@ -167,92 +167,144 @@ def _get_inline_css() -> str:
     """Retourne le CSS global de la page (inline dans <style>)."""
     return """
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,400;1,9..144,600&display=swap');
-:root{--bg-soft:#eef2f7;--card:#ffffff;--text:#2f3d55;--border:#dde5f2}
-html,body,[class*="css"],.stApp{font-family:'Plus Jakarta Sans',sans-serif!important}
-.stApp{background:linear-gradient(180deg,#f4f6fb 0%,var(--bg-soft) 100%);color:var(--text)}
 
-/* Titre de section */
-.section-title{display:flex;align-items:center;gap:0.7rem;font-family:'Fraunces',Georgia,serif!important;
-font-style:italic!important;font-size:1.25rem!important;color:#0F2340!important;
-margin:1.6rem 0 1rem!important;padding-bottom:0.65rem!important;border-bottom:2px solid #dde5f2!important}
-.section-title::before{content:'';display:inline-block;width:4px;height:22px;
-background:linear-gradient(180deg,#2f66b3 0%,#4f8be4 100%);border-radius:2px;flex-shrink:0}
+*, *::before, *::after { box-sizing: border-box; }
+html, body, [class*="css"] { font-family: 'Plus Jakarta Sans', sans-serif; color: #0F2340; }
 
-/* KPI cards */
-.kpi-card,.gauge-card{background:#fff;border:1px solid #dde5f2;border-radius:12px;padding:12px}
-.kpi-label{font-size:0.72rem;color:#6B88A8;text-transform:uppercase;font-weight:700;margin-bottom:6px}
-.kpi-value{font-family:'Fraunces',serif;font-size:1.6rem;font-weight:800}
+.stApp {
+    background-color: #F0F7FF;
+    background-image:
+        radial-gradient(ellipse 1000px 500px at 10% -5%, rgba(56,163,232,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 600px 400px at 90% 105%, rgba(249,115,22,0.08) 0%, transparent 50%);
+}
+.main .block-container { padding-top: 0.75rem; padding-left: 2rem; padding-right: 2rem; max-width: 1500px; }
 
-/* Badges */
-.badge{display:inline-block;font-size:0.64rem;font-weight:700;padding:0.18rem 0.65rem;border-radius:999px}
-.badge-red{background:#FEE2E2;color:#B91C1C}
-.badge-green{background:#DCFCE7;color:#15803D}
-.badge-blue{background:rgba(56,163,232,0.1);color:#38A3E8}
+/* SIDEBAR */
+[data-testid="stSidebar"] { background: #FFFFFF !important; border-right: 1px solid #D0E8F8 !important; }
 
-/* Bouton retour */
-.back-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:14px;
-background:linear-gradient(135deg,#2f66b3,#4f8be4);color:#ffffff!important;font-weight:700;
-text-decoration:none!important;box-shadow:0 6px 18px rgba(47,102,179,0.12)}
+/* HERO */
+.hero-band {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F5F9FF 100%);
+    border: 1px solid #D0E8F8; border-radius: 20px; padding: 1.4rem 2rem 1.3rem;
+    margin-bottom: 0.9rem; position: relative; overflow: hidden;
+    box-shadow: 0 4px 24px rgba(56,163,232,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
+}
+.hero-band::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #38A3E8, #F97316, #38A3E8);
+    background-size: 200% 100%; animation: shimmer 4s linear infinite;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.hero-inner { display: flex; align-items: center; justify-content: space-between; }
+.hero-wordmark h1 {
+    font-family: 'Fraunces', Georgia, serif; font-size: 2rem; font-weight: 600;
+    font-style: italic; color: #0F2340; letter-spacing: -0.02em; margin: 0; line-height: 1;
+}
+.hero-wordmark h1 span { color: #38A3E8; }
+.hero-subtitle { font-size: 0.86rem; color: #4E6A88; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; margin-top: 0.4rem; }
+.hero-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.65rem;
+    font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #F97316;
+    background: rgba(249,115,22,0.08); border: 1px solid rgba(249,115,22,0.25);
+    border-radius: 999px; padding: 0.3rem 0.8rem;
+}
+.hero-chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #F97316; animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-/* Items risques / atouts */
-.q-items{margin-top:20px}
-.q-items .item-row{margin-bottom:22px;padding:12px 16px;border-radius:10px;
-background:#fff;box-shadow:0 6px 18px rgba(16,24,40,0.03)}
+/* SECTION TITLE */
+.section-title {
+    display: flex; align-items: center; gap: 0.7rem; font-family: 'Fraunces', serif;
+    font-size: 1.2rem; font-style: italic; font-weight: 400; color: #0F2340;
+    margin: 1.8rem 0 1rem; padding-bottom: 0.65rem; border-bottom: 2px solid #E4F0FB;
+}
+.section-title::before {
+    content: ''; display: inline-block; width: 4px; height: 20px;
+    background: linear-gradient(180deg, #38A3E8 0%, #F97316 100%); border-radius: 2px; flex-shrink: 0;
+}
 
-/* Onglets */
-[data-baseweb="tab-list"]{background:#FFFFFF!important;border-radius:12px!important;
-padding:4px!important;gap:3px!important;border:1px solid #dde5f2!important;
-box-shadow:0 2px 8px rgba(47,102,179,0.07)!important}
-[data-baseweb="tab"]{font-family:'Plus Jakarta Sans',sans-serif!important;font-weight:600!important;
-font-size:0.88rem!important;color:#6B88A8!important;border-radius:9px!important;
-padding:0.5rem 1.4rem!important;transition:all 0.18s!important}
-[aria-selected="true"][data-baseweb="tab"]{background:linear-gradient(135deg,#2f66b3,#4f8be4)!important;
-color:#FFFFFF!important;font-weight:700!important;
-box-shadow:0 3px 12px rgba(47,102,179,0.30)!important}
-[data-baseweb="tab-highlight"],[data-baseweb="tab-border"]{display:none!important}
-"""
+/* KPI CARD */
+.kpi-card {
+    background: #FFFFFF; border: 1px solid #D6E8F7; border-radius: 16px;
+    padding: 1.3rem 1.2rem 1.1rem; text-align: center;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    box-shadow: 0 2px 8px rgba(56,163,232,0.06); position: relative; overflow: hidden;
+}
+.kpi-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, #38A3E8, #F97316); opacity: 0; transition: opacity 0.22s;
+}
+.kpi-card:hover { transform: translateY(-4px); border-color: #AAD5F5; box-shadow: 0 10px 32px rgba(56,163,232,0.15); }
+.kpi-card:hover::after { opacity: 1; }
+.kpi-label { font-size: 0.8rem; color: #4E6A88 !important; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 700; margin-bottom: 0.55rem; display: block; }
+.kpi-icon { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 0.55rem; }
+.kpi-value { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.35rem; font-weight: 800; color: #0F2340 !important; line-height: 1; letter-spacing: -0.04em; }
+@keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 
+/* GAUGE CARD */
+.gauge-card {
+    background: #FFFFFF; border: 1px solid #D6E8F7; border-radius: 18px;
+    padding: 1.6rem 1.2rem 1.3rem; text-align: center;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    box-shadow: 0 2px 8px rgba(56,163,232,0.06); height: 100%; position: relative; overflow: hidden;
+}
+.gauge-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #38A3E8, #F97316); opacity: 0; transition: opacity 0.22s; }
+.gauge-card:hover { transform: translateY(-4px); border-color: #AAD5F5; box-shadow: 0 12px 36px rgba(56,163,232,0.15); }
+.gauge-card:hover::before { opacity: 1; }
+.gauge-semi-wrap { position: relative; width: 180px; height: 90px; margin: 0 auto 0.7rem; overflow: hidden; }
+.gauge-semi-bg   { position: absolute; width: 180px; height: 180px; border-radius: 50%; background: #EDF5FD; top: 0; left: 0; }
+.gauge-semi-fill {
+    position: absolute; width: 180px; height: 180px; border-radius: 50%; top: 0; left: 0;
+    background: conic-gradient(from 270deg, var(--gauge-color,#38A3E8) 0deg, var(--gauge-color,#38A3E8) calc(var(--g,0deg)), transparent calc(var(--g,0deg)));
+}
+.gauge-semi-inner { position: absolute; width: 112px; height: 112px; background: #FFFFFF; border-radius: 50%; top: 34px; left: 34px; box-shadow: inset 0 2px 8px rgba(56,163,232,0.06); }
+.gauge-value    { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.9rem; font-weight: 800; color: #0F2340; line-height: 1; letter-spacing: -0.04em; }
+.gauge-pct      { font-size: 1rem; font-weight: 500; color: #6B88A8; }
+.gauge-label    { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.96rem; font-weight: 700; color: #0F2340; margin-top: 0.55rem; }
+.gauge-sublabel { font-size: 0.84rem; color: #4E6A88; margin-top: 0.25rem; line-height: 1.5; }
+.gauge-badge    { display: inline-block; margin-top: 0.7rem; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.22rem 0.85rem; border-radius: 999px; }
+.gauge-badge.good  { background: #DCFCE7; color: #15803D; }
+.gauge-badge.alert { background: #FEE2E2; color: #B91C1C; }
 
-def load_css() -> None:
-    st.markdown(f"<style>{_get_inline_css()}</style>", unsafe_allow_html=True)
+/* PROGRESS */
+.prog-track { background: #EDF5FD; border-radius: 999px; height: 7px; overflow: hidden; margin-top: 5px; }
+.prog-fill  { height: 7px; border-radius: 999px; width: 0%; transition: width 1.1s cubic-bezier(0.4,0,0.2,1); }
+.panel-relief { background: #FFFFFF; border: 1px solid #D6E8F7; border-radius: 16px; padding: 0.9rem 1rem 0.6rem; box-shadow: 0 3px 14px rgba(56,163,232,0.08); }
 
+/* WORKZONE / LS CARDS */
+.workzone-card, .ls-card {
+    background: #FFFFFF; border: 1px solid #D6E8F7; border-radius: 14px;
+    padding: 1.1rem 1rem; text-align: center; transition: transform 0.2s, box-shadow 0.2s;
+    animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    box-shadow: 0 2px 6px rgba(56,163,232,0.05);
+}
+.workzone-card:hover, .ls-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(56,163,232,0.12); }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 3. HELPERS STREAMLIT (compatibilité multi-versions)
-# ─────────────────────────────────────────────────────────────────────────────
+/* TABS */
+[data-baseweb="tab-list"] { background: #FFFFFF !important; border-radius: 12px; padding: 4px; gap: 3px; border: 1px solid #D0E8F8; box-shadow: 0 2px 8px rgba(56,163,232,0.07); }
+[data-baseweb="tab"] { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 600 !important; font-size: 0.88rem !important; color: #6B88A8 !important; border-radius: 9px !important; padding: 0.5rem 1.4rem !important; transition: all 0.2s !important; }
+[aria-selected="true"][data-baseweb="tab"] { background: linear-gradient(135deg, #38A3E8, #2B8FD0) !important; color: #FFFFFF !important; font-weight: 700 !important; box-shadow: 0 3px 12px rgba(56,163,232,0.3) !important; }
+[data-baseweb="tab-highlight"], [data-baseweb="tab-border"] { display: none !important; }
 
-def get_query_params_safe() -> dict:
-    """Lecture des query params compatible toutes versions Streamlit."""
-    try:
-        if hasattr(st, "query_params"):
-            return dict(st.query_params)
-    except Exception:
-        pass
-    if hasattr(st, "get_query_params"):
-        try:
-            return st.get_query_params()
-        except Exception:
-            pass
-    return {}
+/* SELECTS & BUTTONS */
+[data-baseweb="select"] > div { background-color: #FFFFFF !important; border-color: #C8DFF2 !important; border-radius: 10px !important; color: #0F2340 !important; }
+.stButton > button { background: linear-gradient(135deg, #38A3E8, #2B8FD0) !important; border: none !important; color: #FFFFFF !important; border-radius: 10px !important; font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 700 !important; font-size: 0.8rem !important; letter-spacing: 0.02em !important; box-shadow: 0 3px 10px rgba(56,163,232,0.25) !important; transition: all 0.18s !important; }
+.stButton > button:hover { background: linear-gradient(135deg, #F97316, #EA6A0A) !important; box-shadow: 0 4px 16px rgba(249,115,22,0.3) !important; transform: translateY(-1px) !important; }
 
+/* PLOTLY */
+div[data-testid="stPlotlyChart"] { border: 1px solid #D6E8F7; border-radius: 12px; background: #FFFFFF; box-shadow: 0 4px 16px rgba(56,163,232,0.06); padding: 4px; }
 
-def set_query_params_safe(**params) -> None:
-    """Écriture des query params compatible toutes versions Streamlit."""
-    if hasattr(st, "set_query_params"):
-        try:
-            st.set_query_params(**params)
-        except Exception:
-            pass
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #EDF5FD; }
+::-webkit-scrollbar-thumb { background: #AAD5F5; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #38A3E8; }
 
-
-def safe_rerun() -> None:
-    """Rerun compatible toutes versions Streamlit."""
-    if hasattr(st, "rerun"):
-        try:
-            st.rerun()
-        except Exception:
-            pass
-
+hr { border: none; border-top: 1px solid #E4F0FB; margin: 1rem 0; }
+@property --g { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+</style>
+""", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. HELPERS DE DONNÉES
@@ -290,13 +342,7 @@ def find_col(df: pd.DataFrame, target: str):
     return None
 
 
-def recode_to_2_classes(series: pd.Series) -> pd.Series:
-    """
-    Recode les réponses originales (1–4 ou textuelles) en 2 classes :
-    - Insatisfait : modalités 1, 2 / "Très insatisfait" / "Insatisfait"
-    - Satisfait   : modalités 3, 4 / "Satisfait" / "Très satisfait"
-    Retourne une Series avec les valeurs "Insatisfait" ou "Satisfait" (ou NA).
-    """
+def recode_response(series):
     out = pd.Series(pd.NA, index=series.index, dtype="object")
     # Recodage numérique
     num = pd.to_numeric(series, errors="coerce")
@@ -315,15 +361,7 @@ def recode_to_2_classes(series: pd.Series) -> pd.Series:
     return out
 
 
-def add_derived_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Ajoute des colonnes dérivées si elles n'existent pas déjà :
-    - TrancheAge         (depuis Age)
-    - Classe_Anciennete  (depuis Anciennete)
-    - IMC                (depuis Poids + Taille)
-    - Categorie_IMC      (depuis IMC)
-    Copie aussi les variantes orthographiques sous un nom standard.
-    """
+def add_derived_columns(df):
     out = df.copy()
     age_col   = find_col(out, "Age")
     anc_col   = find_col(out, "Anciennete")
@@ -384,86 +422,6 @@ def resolve_questions(df: pd.DataFrame) -> dict:
     return {q: find_col(df, q) for q in QUESTIONS if find_col(df, q)}
 
 
-@st.cache_data
-def load_excel(file) -> pd.DataFrame:
-    """Charge le fichier Excel (mis en cache par Streamlit)."""
-    return pd.read_excel(file)
-
-
-def compute_scores(df: pd.DataFrame, question_map: dict) -> pd.DataFrame:
-    """
-    Calcule les scores numériques (moyennes) par domaine et le Score_Global.
-    Les scores sont sur l'échelle brute (1–4).
-    """
-    out = df.copy()
-    for score_name, qs in SCORE_GROUPS.items():
-        cols = [question_map[q] for q in qs if q in question_map]
-        if cols:
-            out[score_name] = out[cols].apply(pd.to_numeric, errors="coerce").mean(axis=1)
-    q_cols = list(question_map.values())
-    if q_cols:
-        out["Score_Global"] = out[q_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1)
-    return out
-
-
-def compute_pct_satisfait(df: pd.DataFrame, question_map: dict) -> dict:
-    """
-    Calcule le % de répondants "Satisfaits" pour chaque domaine et globalement.
-    Retourne un dict {domaine: pct_satisfait} + {"Global": pct_global}.
-    """
-    result = {}
-    # Par domaine
-    for domain, qs in SCORE_GROUPS.items():
-        cols = [question_map[q] for q in qs if q in question_map]
-        if not cols:
-            continue
-        # On empile toutes les réponses de toutes les questions du domaine
-        all_responses = pd.concat(
-            [recode_to_2_classes(df[c]) for c in cols], ignore_index=True
-        )
-        n_total = all_responses.notna().sum()
-        n_sat = (all_responses == "Satisfait").sum()
-        result[domain] = (n_sat / n_total * 100) if n_total > 0 else 0.0
-
-    # Score global : toutes les questions confondues
-    all_cols = list(question_map.values())
-    if all_cols:
-        all_responses_global = pd.concat(
-            [recode_to_2_classes(df[c]) for c in all_cols], ignore_index=True
-        )
-        n_total = all_responses_global.notna().sum()
-        n_sat = (all_responses_global == "Satisfait").sum()
-        result["Global"] = (n_sat / n_total * 100) if n_total > 0 else 0.0
-
-    return result
-
-def get_renamed_question(question_text: str) -> str:
-    """Retourne le nom renommé d'une question si disponible, sinon le texte original."""
-    return RENOMMED_QUESTIONS.get(question_text, question_text)
-def question_stats(df: pd.DataFrame, question_map: dict) -> pd.DataFrame:
-    """
-    Calcule pour chaque question :
-    - pct_insatisfait : % de répondants "Insatisfait"
-    - pct_satisfait   : % de répondants "Satisfait"
-    Retourne un DataFrame trié par pct_satisfait croissant.
-    """
-    rows = []
-    for q, col in question_map.items():
-        recoded = recode_to_2_classes(df[col])
-        counts = recoded.value_counts()
-        total = counts.sum()
-        pct_sat = counts.get("Satisfait", 0) / total * 100 if total else 0
-        pct_ins = counts.get("Insatisfait", 0) / total * 100 if total else 0
-        rows.append({
-            "question":    q,
-            "col":         col,
-            "pct_sat":     pct_sat,
-            "pct_ins":     pct_ins,
-            "n_valid":     int(total),
-        })
-    return pd.DataFrame(rows).sort_values("pct_sat")
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 # 5. HELPERS UI
 # ─────────────────────────────────────────────────────────────────────────────
@@ -492,9 +450,9 @@ def kpi_card(label: str, value, color: str = None, suffix: str = "", decimals: i
     )
     st.markdown(f"""
     <div class="kpi-card">
-    <div class="kpi-label">{label}</div>
-    <div class="kpi-value" style="color:{color};">{disp}</div>
-    {sub_html}
+        <div class="kpi-label">{label}</div>
+        <div class="kpi-value" style="color:{color};">{disp}</div>
+        {sub_html}
     </div>""", unsafe_allow_html=True)
 
 
@@ -589,17 +547,11 @@ def _apply_layout(fig: go.Figure, title: str = "", height: int = None) -> go.Fig
     return fig
 
 
-def chart_bar_univarie(series: pd.Series, var_label: str) -> go.Figure:
-    """
-    Graphique en barres horizontales pour la distribution d'une variable socio.
-    Affiche % et effectif à l'intérieur de chaque barre.
-    """
-    counts = series.value_counts().reset_index()
-    counts.columns = [var_label, "n"]
-    total = counts["n"].sum()
-    counts["pct"] = counts["n"] / total * 100
-    palette = [C["blue"], C["orange"], C["purple"], C["green"],
-            "#F2B86B", "#4EC0D9", "#FB9A6B", "#84CC6A"]
+def radar_chart(score_means: dict) -> go.Figure:
+    dims  = list(score_means.keys())
+    vals  = list(score_means.values())
+    dims_ = dims + [dims[0]]
+    vals_ = vals + [vals[0]]
     fig = go.Figure()
     for i, row in counts.iterrows():
         fig.add_trace(go.Bar(
@@ -652,8 +604,9 @@ def chart_stacked_2classes(crosstab: pd.DataFrame, title: str, y_axis_label: str
             xanchor="center",
         ),
         xaxis=dict(range=[0, 100], title="Pourcentage (%)", ticksuffix="%",
-                showgrid=True, gridcolor="#F5F7FA"),
-        yaxis=dict(title=y_axis_label, showgrid=False),
+                   showgrid=True, gridcolor="#EDF5FD", zeroline=False,
+                   tickfont=dict(color=C["muted"], size=11)),
+        yaxis=dict(title=y_title, tickfont=dict(color=C["text"], size=11), showgrid=False),
         legend_title="Réponses",
         plot_bgcolor="#FAFCFF", paper_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Plus Jakarta Sans", color=C["text"], size=11),
@@ -662,84 +615,104 @@ def chart_stacked_2classes(crosstab: pd.DataFrame, title: str, y_axis_label: str
     )
     return fig
 
-def chart_bivariate_domain(df: pd.DataFrame, socio_col: str,
-                            domain: str, question_map: dict) -> go.Figure:
-    """
-    Graphique bivarié : répartition Satisfait/Insatisfait pour toutes les questions
-    d'un domaine, par catégorie de variable socio.
-    Retourne un graphique empilé à 2 classes.
-    """
-    qs_in_domain = [q for q in SCORE_GROUPS.get(domain, []) if q in question_map]
-    if not qs_in_domain:
-        return go.Figure()
 
-    # Empiler toutes les questions du domaine, grouper par socio_col
-    frames = []
-    for q in qs_in_domain:
-        tmp = df[[socio_col, question_map[q]]].copy()
-        tmp["Reponse"] = recode_to_2_classes(tmp[question_map[q]])
-        tmp = tmp[[socio_col, "Reponse"]].dropna()
-        frames.append(tmp)
-
-    if not frames:
-        return go.Figure()
-
-    combined = pd.concat(frames, ignore_index=True)
-    ct = pd.crosstab(combined[socio_col], combined["Reponse"], normalize="index") * 100
-    ct = ct.reindex(columns=RESPONSE_CLASSES, fill_value=0)
-
-    return chart_stacked_2classes(
-        ct,
-        title=f"{domain} par {socio_col}",  # Ex: "Clarté des missions par Département"
-        y_axis_label=socio_col,
-    )
-
-def chart_bivariate_question(df: pd.DataFrame, socio_col: str,
-                            question: str, question_map: dict) -> go.Figure:
-    """
-    Graphique bivarié : répartition Satisfait/Insatisfait pour UNE question,
-    par catégorie de variable socio.
-    """
-    col = question_map.get(question)
-    if col is None:
-        return go.Figure()
-
-    tmp = df[[socio_col, col]].copy()
-    tmp["Reponse"] = recode_to_2_classes(tmp[col])
-    ct = pd.crosstab(tmp[socio_col], tmp["Reponse"], normalize="index") * 100
-    ct = ct.reindex(columns=RESPONSE_CLASSES, fill_value=0)
-
-    # Utiliser le nom renommé de la question
-    renamed_question = get_renamed_question(question)
-    # Tronquer si nécessaire (60 caractères maximum)
-    short_q = renamed_question[:60] + "…" if len(renamed_question) > 60 else renamed_question
-    
-    return chart_stacked_2classes(
-        ct,
-        title=f"{short_q} par {socio_col}",  # Ex: "Clarté des missions par Département"
-        y_axis_label=socio_col,
-    )
-
-def chart_pie_global(pct_bon: float) -> go.Figure:
-    """
-    Camembert Bon / Mauvais pour la Vue d'ensemble du score global.
-    pct_bon : pourcentage de répondants "Satisfaits" globalement.
-    """
-    pct_mau = 100.0 - pct_bon
-    fig = px.pie(
-        names=["Satisfaits", "Insatisfaits"],
-        values=[pct_bon, pct_mau],
-        color=["Satisfaits", "Insatisfaits"],
-        color_discrete_map={"Insatisfaits": C["red"], "Satisfaits": C["green"]},
-        title="Répartition globale de la satisfaction QVT",
-    )
-    fig.update_traces(
-        textinfo="percent+label",
-        textfont=dict(color="white", size=12, family="Plus Jakarta Sans"),
-        insidetextorientation="radial",
-    )
-    fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="#FAFCFF")
+def bar_univarie(series: pd.Series, var_label: str) -> go.Figure:
+    counts = series.value_counts().reset_index()
+    counts.columns = [var_label, "n"]
+    total = counts["n"].sum()
+    counts["pct"] = counts["n"] / total * 100
+    palette = [C["blue"], C["orange"], C["purple"], C["green"], "#F59E0B",
+               "#06B6D4", "#FB923C", "#84CC16"]
+    fig = go.Figure()
+    for i, row in counts.iterrows():
+        fig.add_trace(go.Bar(
+            y=[str(row[var_label])], x=[row["pct"]], orientation="h",
+            marker_color=palette[i % len(palette)], opacity=0.88,
+            text=f"  {row['pct']:.1f}%  (n={row['n']})",
+            textposition="outside",
+            textfont=dict(color=C["muted"], size=11, family="Plus Jakarta Sans"),
+            showlegend=False, name=str(row[var_label]),
+        ))
+    height = max(260, len(counts) * 52 + 80)
+    fig = apply_layout(fig, f"Distribution — {var_label}", height)
+    fig.update_xaxes(range=[0, 130], title_text="Pourcentage (%)", ticksuffix="%")
+    fig.update_yaxes(title_text=var_label)
     return fig
+
+
+def bar_bivarie(df_sub: pd.DataFrame, x_col: str, y_col: str, y_label: str) -> go.Figure:
+    """Score moyen d'une dimension QVT par catégorie d'une variable socio."""
+    groups = df_sub.groupby(x_col)[y_col].agg(["mean", "count"]).reset_index()
+    groups.columns = [x_col, "mean", "n"]
+    groups = groups.sort_values("mean", ascending=True)
+
+    colors_list = [
+        C["green"] if v >= 3 else C["orange"] if v >= 2.5 else C["red"]
+        for v in groups["mean"]
+    ]
+    fig = go.Figure(go.Bar(
+        y=groups[x_col].astype(str),
+        x=groups["mean"],
+        orientation="h",
+        marker_color=colors_list,
+        opacity=0.88,
+        text=[f"{v:.2f}  (n={n})" for v, n in zip(groups["mean"], groups["n"])],
+        textposition="outside",
+        textfont=dict(color=C["muted"], size=11, family="Plus Jakarta Sans"),
+    ))
+    height = max(260, len(groups) * 52 + 80)
+    fig = apply_layout(fig, f"{y_label} selon {x_col}", height)
+    fig.update_xaxes(range=[1, 4.5], title_text="Score moyen (/4)")
+    fig.update_yaxes(title_text=x_col)
+    # Ligne de référence à 2.5
+    fig.add_vline(x=2.5, line_dash="dot", line_color=C["orange"],
+                  line_width=1.5, annotation_text="Seuil 2.5",
+                  annotation_font=dict(color=C["orange"], size=10))
+    return fig
+
+
+def stacked_bivarie(df_sub: pd.DataFrame, x_col: str, q_col: str, q_label: str) -> go.Figure:
+    """Répartition des réponses à une question selon une variable socio."""
+    tmp = df_sub.copy()
+    tmp["Reponse"] = recode_response(tmp[q_col])
+    ct = pd.crosstab(tmp[x_col], tmp["Reponse"], normalize="index") * 100
+    ct = ct.reindex(columns=RESPONSE_ORDER, fill_value=0)
+    return stacked_pct_chart(ct, f"Réponses à « {q_label[:55]}… » selon {x_col}", x_col)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHARGEMENT DONNÉES
+# ─────────────────────────────────────────────────────────────────────────────
+@st.cache_data
+def load_excel(file) -> pd.DataFrame:
+    return pd.read_excel(file)
+
+
+def compute_scores(df: pd.DataFrame, question_map: dict) -> pd.DataFrame:
+    out = df.copy()
+    for score_name, qs in SCORE_GROUPS.items():
+        cols = [question_map[q] for q in qs if q in question_map]
+        if cols:
+            raw = out[cols].apply(pd.to_numeric, errors="coerce")
+            out[score_name] = raw.mean(axis=1)
+    q_cols = list(question_map.values())
+    if q_cols:
+        out["Score_Global"] = out[q_cols].apply(pd.to_numeric, errors="coerce").mean(axis=1)
+    return out
+
+
+def question_stats(df: pd.DataFrame, question_map: dict) -> pd.DataFrame:
+    rows = []
+    n = len(df)
+    for q, col in question_map.items():
+        recoded = recode_response(df[col])
+        counts  = recoded.value_counts()
+        total   = counts.sum()
+        pct_neg = (counts.get("Très insatisfait", 0) + counts.get("Insatisfait", 0)) / total * 100
+        pct_pos = (counts.get("Satisfait", 0)        + counts.get("Très satisfait", 0)) / total * 100
+        avg     = pd.to_numeric(df[col], errors="coerce").mean()
+        rows.append({"question": q, "col": col, "pct_neg": pct_neg, "pct_pos": pct_pos, "avg": avg, "n_valid": int(total)})
+    return pd.DataFrame(rows).sort_values("avg")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
