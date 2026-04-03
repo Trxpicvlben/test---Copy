@@ -91,141 +91,149 @@ QUESTION_LABELS = {
 # ============================================================
 st.markdown(
     '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">'
-    '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,400;1,9..144,600&display=swap" rel="stylesheet">',
+    '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800'
+    '&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,400;1,9..144,600&display=swap" rel="stylesheet">',
     unsafe_allow_html=True,
 )
-st.markdown(
-    """
-    <style>
-    :root{
-    --bg-soft: #eef2f7;
-    --card:    #ffffff;
-    --text:    #2f3d55;
-    --accent:  #2f66b3;
-    --border:  #dde5f2;
+st.markdown("""
+<style>
+:root{
+    --bg-soft:#eef2f7; --card:#ffffff; --text:#2f3d55; --accent:#2f66b3; --border:#dde5f2;
     --ink:#24395F; --muted:#6B7EA6; --blue:#3D74D7; --pink:#E35DA8;
     --orange:#E98A2F; --teal:#22B8B2; --green:#39B56A; --danger:#E25555;
     --line:#D8E2F0; --shadow:0 10px 24px rgba(35,51,80,0.08);
-    }
-    html,body,[class*="css"],.stApp{font-family:'Plus Jakarta Sans',sans-serif!important;color:#0F172A}
-    .main{background:#f4f6fb!important}
-    .block-container{padding:1.25rem 1.6rem!important;max-width:1280px!important}
+}
+html,body,[class*="css"],.stApp { font-family:'Plus Jakarta Sans',sans-serif!important; color:#0F172A }
+.main { background:#f4f6fb!important }
+.block-container { padding:1.25rem 1.6rem!important; max-width:1280px!important }
+.stApp {
+    background: linear-gradient(180deg, #f4f6fb 0%, var(--bg-soft) 100%);
+    color: var(--text);
+}
+[data-testid="metric-container"] {
+    background:white; border-radius:14px; padding:1.1rem 1.2rem;
+    border:1px solid var(--line); box-shadow:var(--shadow); transition:all 0.2s
+}
+[data-testid="metric-container"]:hover {
+    transform:translateY(-2px); border-color:#c9d8f5;
+    box-shadow:0 10px 24px rgba(39,63,122,0.12)
+}
+[data-testid="stMetricLabel"] p {
+    font-size:0.72rem!important; color:#6b7a99!important;
+    text-transform:uppercase; letter-spacing:0.06em; font-weight:600!important
+}
+[data-testid="stMetricValue"] {
+    font-family:Manrope,sans-serif!important; font-size:1.7rem!important;
+    font-weight:700!important; color:#0f172a!important
+}
+.stButton>button {
+    background:#f3f6fb!important; color:#2c3e5e!important;
+    border:1px solid #d7e0ee!important; border-radius:999px!important;
+    font-weight:600!important; font-size:13px!important; padding:0.4rem 1.1rem!important;
+    box-shadow:0 6px 16px rgba(33,43,67,0.10)!important; transition:all 0.2s!important
+}
+.stButton>button:hover { background:#2f67c8!important; color:white!important; border-color:#2f67c8!important }
+.hero {
+    background:#ffffff; border-radius:16px; padding:16px 18px;
+    border:1px solid var(--line); margin-bottom:12px; box-shadow:var(--shadow);
+}
+.hero h1 { margin:0; font-size:24px; color:#1f2a44; letter-spacing:0.1px; }
+.hero p  { margin:6px 0 0; color:#6b7a99; font-size:13px; }
+.section-card {
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:12px; margin-bottom:12px; box-shadow:var(--shadow);
+}
+.section-card h3,.section-card h4 { color:var(--ink); letter-spacing:0.2px; }
+.filters-panel {
+    background:#ffffff; border:1px solid var(--line); border-radius:14px;
+    padding:12px 14px; box-shadow:var(--shadow); margin-bottom:12px;
+}
+.filters-title { margin:0; font-size:22px; font-weight:800; line-height:1; color:#223962; letter-spacing:0.2px; }
+.filters-sub   { margin-top:6px; font-size:13px; color:#5f74a3; }
+.kpi-strip {
+    background:#ffffff; border:1px solid #e6edf9; border-radius:14px; min-height:94px;
+    box-shadow:0 8px 20px rgba(31,50,103,0.08);
+    display:grid; grid-template-columns:6px 56px 1fr; align-items:center; overflow:hidden;
+}
+.kpi-accent   { width:6px; height:100%; }
+.kpi-icon-wrap { display:flex; justify-content:center; }
+.kpi-icon {
+    width:38px; height:38px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:18px; font-weight:800; color:#ffffff;
+}
+.kpi-body  { padding:10px 14px 10px 6px; }
+.klabel    { color:#7688af; font-size:12px; letter-spacing:0.2px; margin-bottom:3px; }
+.kval      { color:#223252; font-weight:800; font-size:34px; line-height:1; }
+.section-title {
+    display:flex; align-items:center; gap:0.7rem;
+    font-family:'Fraunces',Georgia,serif!important;
+    font-size:1.25rem!important; font-style:italic!important; font-weight:400!important;
+    color:#0F2340!important; margin:1.6rem 0 1rem!important;
+    padding-bottom:0.65rem!important; border-bottom:2px solid #dde5f2!important;
+}
+.section-title::before {
+    content:''; display:inline-block; width:4px; height:22px;
+    background:linear-gradient(180deg,#2f66b3 0%,#4f8be4 100%);
+    border-radius:2px; flex-shrink:0;
+}
+.section-title::after { display:none!important; }
+.stress-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.stress-box  {
+    background:#f6f9ff; border:1px solid #dce7f7; border-radius:12px;
+    text-align:center; padding:12px 8px;
+}
+.stress-box .v { font-size:28px; font-weight:800; }
+.stress-box .l { color:#7687af; font-size:12px; text-transform:uppercase; }
+.pcard      { background:#efe9de; border-radius:12px; border:1px solid rgba(20,20,20,0.1); overflow:hidden; }
+.pcard-head { height:14px; background:linear-gradient(90deg,#e5ccaa,#f1dfc4); }
+.pcard-body { padding:12px; color:#12152a; }
+.pcard-title { font-size:22px; font-weight:800; margin-bottom:8px; }
+.pcard-row  { display:grid; grid-template-columns:1.4fr 1fr; gap:8px; align-items:center; }
+.pcard-grid { display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); gap:4px; }
+.picto-icon { position:relative; width:20px; height:20px; display:inline-block; }
+.pcard-value   { font-size:30px; font-weight:800; text-align:center; }
+.pcard-caption { font-size:12px; text-align:center; color:#5f657d; }
+.pcard-alert   { margin-top:8px; font-size:14px; font-weight:800; }
+.pcard-msg     { font-size:14px; line-height:1.55; color:#4f556e; }
+.upload-note { background:#ffffff; border:1px solid var(--line); border-radius:14px; padding:16px; box-shadow:var(--shadow); max-width:760px; }
+.upload-note h3 { margin:0 0 8px 0; color:#223559; font-size:22px; }
+.upload-note p  { margin:0; color:#5f719a; }
+[data-testid="stMetric"] {
+    background:#ffffff; border:1px solid var(--line);
+    border-radius:12px; padding:10px 12px; box-shadow:var(--shadow);
+}
+[data-baseweb="tab-list"] {
+    background:#FFFFFF!important; border-radius:12px!important; padding:4px!important;
+    gap:3px!important; border:1px solid #dde5f2!important;
+    box-shadow:0 2px 8px rgba(47,102,179,0.07)!important;
+}
+[data-baseweb="tab"] {
+    font-family:'Plus Jakarta Sans',sans-serif!important; font-weight:600!important;
+    font-size:0.88rem!important; color:#6B88A8!important; border-radius:9px!important;
+    padding:0.5rem 1.4rem!important; transition:all 0.2s!important;
+}
+[aria-selected="true"][data-baseweb="tab"] {
+    background:linear-gradient(135deg,#2f66b3,#4f8be4)!important; color:#FFFFFF!important;
+    font-weight:700!important; box-shadow:0 3px 12px rgba(47,102,179,0.30)!important;
+}
+[data-baseweb="tab-highlight"],[data-baseweb="tab-border"] { display:none!important; }
+[data-testid="stSelectbox"]>div { border-radius:12px; border:1px solid var(--line); background:#ffffff; }
+[data-testid="stSelectbox"] input { color:#1f2a44; }
+[data-testid="stFileUploader"] section { border:1px dashed #d5dcea; border-radius:12px; background:#f6f8fc; }
+[data-testid="stFileUploader"] button  { background:#ffffff; border:1px solid #d7e0ee; border-radius:10px; padding:0.3rem 0.9rem; font-weight:600; }
+[data-testid="stSidebar"] { background-color:#FFFFFF!important; border-right:1px solid #dde5f2!important; }
+[data-testid="stSidebar"] .stMarkdown,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] .stText { color:#0F2340!important; }
+</style>
+""", unsafe_allow_html=True)
 
-    .stApp{
-        background: linear-gradient(180deg, #f4f6fb 0%, var(--bg-soft) 100%);
-        color: var(--text);
-    }
-    [data-testid="metric-container"]{background:white;border-radius:14px;padding:1.1rem 1.2rem;border:1px solid var(--line);box-shadow:var(--shadow);transition:all 0.2s}
-    [data-testid="metric-container"]:hover{transform:translateY(-2px);border-color:#c9d8f5;box-shadow:0 10px 24px rgba(39,63,122,0.12)}
-    [data-testid="stMetricLabel"] p{font-size:0.72rem!important;color:#6b7a99!important;text-transform:uppercase;letter-spacing:0.06em;font-weight:600!important}
-    [data-testid="stMetricValue"]{font-family:Manrope,sans-serif!important;font-size:1.7rem!important;font-weight:700!important;color:#0f172a!important}
-    .stButton>button{background:#f3f6fb!important;color:#2c3e5e!important;border:1px solid #d7e0ee!important;border-radius:999px!important;font-weight:600!important;font-size:13px!important;padding:0.4rem 1.1rem!important;box-shadow:0 6px 16px rgba(33,43,67,0.10)!important;transition:all 0.2s!important}
-    .stButton>button:hover{background:#2f67c8!important;color:white!important;border-color:#2f67c8!important}
-    .hero{background:#ffffff;border-radius:16px;padding:16px 18px;border:1px solid var(--line);margin-bottom:12px;box-shadow:var(--shadow);}
-    .hero h1{margin:0;font-size:24px;color:#1f2a44;letter-spacing:0.1px;}
-    .hero p{margin:6px 0 0;color:#6b7a99;font-size:13px;}
-    .section-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:var(--shadow);}
-    .section-card h3,.section-card h4{color:var(--ink);letter-spacing:0.2px;}
-    .filters-panel{background:#ffffff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:12px;}
-    .filters-title{margin:0;font-size:22px;font-weight:800;line-height:1;color:#223962;letter-spacing:0.2px;}
-    .filters-sub{margin-top:6px;font-size:13px;color:#5f74a3;}
-    .kpi-strip{background:#ffffff;border:1px solid #e6edf9;border-radius:14px;min-height:94px;box-shadow:0 8px 20px rgba(31,50,103,0.08);display:grid;grid-template-columns:6px 56px 1fr;align-items:center;overflow:hidden;}
-    .kpi-accent{width:6px;height:100%;}
-    .kpi-icon-wrap{display:flex;justify-content:center;}
-    .kpi-icon{width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#ffffff;}
-    .kpi-body{padding:10px 14px 10px 6px;}
-    .klabel{color:#7688af;font-size:12px;letter-spacing:0.2px;margin-bottom:3px;}
-    .kval{color:#223252;font-weight:800;font-size:34px;line-height:1;}
-    .section-title{
-        display: flex;
-        align-items: center;
-        gap: 0.7rem;
-        font-family: 'Fraunces', Georgia, serif !important;
-        font-size: 1.25rem !important;
-        font-style: italic !important;
-        font-weight: 400 !important;
-        color: #0F2340 !important;
-        margin: 1.6rem 0 1rem !important;
-        padding-bottom: 0.65rem !important;
-        border-bottom: 2px solid #dde5f2 !important;
-    }
-    .section-title::before{
-        content: '';
-        display: inline-block;
-        width: 4px;
-        height: 22px;
-        background: linear-gradient(180deg, #2f66b3 0%, #4f8be4 100%);
-        border-radius: 2px;
-        flex-shrink: 0;
-    }
-    .section-title::after{ display:none !important; }
-    .stress-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
-    .stress-box{background:#f6f9ff;border:1px solid #dce7f7;border-radius:12px;text-align:center;padding:12px 8px;}
-    .stress-box .v{font-size:28px;font-weight:800;}
-    .stress-box .l{color:#7687af;font-size:12px;text-transform:uppercase;}
-    .pcard{background:#efe9de;border-radius:12px;border:1px solid rgba(20,20,20,0.1);overflow:hidden;}
-    .pcard-head{height:14px;background:linear-gradient(90deg,#e5ccaa,#f1dfc4);}
-    .pcard-body{padding:12px;color:#12152a;}
-    .pcard-title{font-size:22px;font-weight:800;margin-bottom:8px;}
-    .pcard-row{display:grid;grid-template-columns:1.4fr 1fr;gap:8px;align-items:center;}
-    .pcard-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;}
-    .picto-icon{position:relative;width:20px;height:20px;display:inline-block;}
-    .pcard-value{font-size:30px;font-weight:800;text-align:center;}
-    .pcard-caption{font-size:12px;text-align:center;color:#5f657d;}
-    .pcard-alert{margin-top:8px;font-size:14px;font-weight:800;}
-    .pcard-msg{font-size:14px;line-height:1.55;color:#4f556e;}
-    .upload-note{background:#ffffff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);max-width:760px;}
-    .upload-note h3{margin:0 0 8px 0;color:#223559;font-size:22px;}
-    .upload-note p{margin:0;color:#5f719a;}
-    [data-testid="stMetric"]{background:#ffffff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow);}
-    [data-baseweb="tab-list"]{
-        background: #FFFFFF !important;
-        border-radius: 12px !important;
-        padding: 4px !important;
-        gap: 3px !important;
-        border: 1px solid #dde5f2 !important;
-        box-shadow: 0 2px 8px rgba(47,102,179,0.07) !important;
-    }
-    [data-baseweb="tab"]{
-        font-family: 'Plus Jakarta Sans', sans-serif !important;
-        font-weight: 600 !important;
-        font-size: 0.88rem !important;
-        color: #6B88A8 !important;
-        border-radius: 9px !important;
-        padding: 0.5rem 1.4rem !important;
-        transition: all 0.2s !important;
-    }
-    [aria-selected="true"][data-baseweb="tab"]{
-        background: linear-gradient(135deg, #2f66b3, #4f8be4) !important;
-        color: #FFFFFF !important;
-        font-weight: 700 !important;
-        box-shadow: 0 3px 12px rgba(47,102,179,0.30) !important;
-    }
-    [data-baseweb="tab-highlight"],
-    [data-baseweb="tab-border"]{ display: none !important; }
-    [data-testid="stSelectbox"]>div{border-radius:12px;border:1px solid var(--line);background:#ffffff;}
-    [data-testid="stSelectbox"] input{color:#1f2a44;}
-    [data-testid="stFileUploader"] section{border:1px dashed #d5dcea;border-radius:12px;background:#f6f8fc;}
-    [data-testid="stFileUploader"] button{background:#ffffff;border:1px solid #d7e0ee;border-radius:10px;padding:0.3rem 0.9rem;font-weight:600;}
-
-    /* ── Sidebar blanche ── */
-    [data-testid="stSidebar"] {
-        background-color: #FFFFFF !important;
-        border-right: 1px solid #dde5f2 !important;
-    }
-    [data-testid="stSidebar"] .stMarkdown,
-    [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] .stText {
-        color: #0F2340 !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
 
 # ============================================================
 # FONCTIONS UTILITAIRES
 # ============================================================
+
 def style_figure(fig, height=420):
     fig.update_layout(
         template="plotly_white",
@@ -239,10 +247,8 @@ def style_figure(fig, height=420):
             bordercolor="#DCE7F7",
             borderwidth=1,
             orientation="v",
-            yanchor="top",
-            y=1.0,
-            xanchor="right",
-            x=1.0,
+            yanchor="top", y=1.0,
+            xanchor="right", x=1.0,
         ),
         colorway=CHART_SEQUENCE,
         hoverlabel=dict(bgcolor="#1F2A44", font_color="#F3F7FF"),
@@ -271,14 +277,8 @@ def label_variable(col_name: str) -> str:
     return QUESTION_LABELS.get(col_name, col_name)
 
 
-LIKERT_LABELS = {
-    0: "Jamais",
-    1: "Presque jamais",
-    2: "Parfois",
-    3: "Assez souvent",
-    4: "Très souvent",
-}
-LIKERT_ORDER = [LIKERT_LABELS[i] for i in range(5)]
+LIKERT_LABELS = {0: "Jamais", 1: "Presque jamais", 2: "Parfois", 3: "Assez souvent", 4: "Très souvent"}
+LIKERT_ORDER  = [LIKERT_LABELS[i] for i in range(5)]
 
 
 def map_likert(series: pd.Series) -> pd.Categorical:
@@ -296,16 +296,14 @@ def slug(text: str) -> str:
 
 def normaliser_oui_non(series: pd.Series) -> pd.Series:
     yes_tokens = {"oui", "o", "yes", "y", "1", "true", "vrai"}
-    no_tokens = {"non", "n", "no", "0", "false", "faux"}
+    no_tokens  = {"non", "n", "no",  "0", "false", "faux"}
 
     def _to_oui_non(value):
         if pd.isna(value):
             return np.nan
         token = slug(value)
-        if token in yes_tokens:
-            return "Oui"
-        if token in no_tokens:
-            return "Non"
+        if token in yes_tokens: return "Oui"
+        if token in no_tokens:  return "Non"
         return np.nan
 
     return series.apply(_to_oui_non)
@@ -334,36 +332,22 @@ def normaliser_colonnes(df_in: pd.DataFrame) -> pd.DataFrame:
     rename_map = {}
     for col in df.columns:
         s = slug(col)
-        if s in {"sexe", "sex"}:
-            rename_map[col] = "Sexe"
-        elif s == "age":
-            rename_map[col] = "Age"
-        elif s.startswith("situation_m"):
-            rename_map[col] = "Situation_matrimoniale"
-        elif s in {"taille_cm", "taille"}:
-            rename_map[col] = "Taille_cm"
-        elif s in {"poids_kg", "poids"}:
-            rename_map[col] = "Poids_kg"
-        elif s in {"anciennete", "anciennete_ans", "anciennete_annees"}:
-            rename_map[col] = "Anciennete"
-        elif s == "direction":
-            rename_map[col] = "Direction"
-        elif s == "fonction":
-            rename_map[col] = "Fonction"
-        elif s == "poste":
-            rename_map[col] = "Poste"
-        elif s in {"handicap_physique", "handicap"}:
-            rename_map[col] = "Handicap_Physique"
-        elif s in {"maladie_chronique", "maladies_chroniques"}:
-            rename_map[col] = "Maladie_Chronique"
-        elif s in {"alcool", "consommation_alcool"}:
-            rename_map[col] = "Alcool"
-        elif s in {"fumez_vous", "fumeur", "consommation_tabac", "tabac"}:
-            rename_map[col] = "Fumeur"
-        elif s in {"pratique_de_l_alcool", "pratique_alcool"}:
-            rename_map[col] = "Pratique_Alcool"
-        elif s in {"suivi_pour_un_probleme_psychologique", "suivi_psychologique", "suivi_psy", "probleme_psychologique"}:
-            rename_map[col] = "Suivi_Psychologique"
+        if s in {"sexe", "sex"}:                                              rename_map[col] = "Sexe"
+        elif s == "age":                                                       rename_map[col] = "Age"
+        elif s.startswith("situation_m"):                                      rename_map[col] = "Situation_matrimoniale"
+        elif s in {"taille_cm", "taille"}:                                    rename_map[col] = "Taille_cm"
+        elif s in {"poids_kg", "poids"}:                                      rename_map[col] = "Poids_kg"
+        elif s in {"anciennete", "anciennete_ans", "anciennete_annees"}:      rename_map[col] = "Anciennete"
+        elif s == "direction":                                                 rename_map[col] = "Direction"
+        elif s == "fonction":                                                  rename_map[col] = "Fonction"
+        elif s == "poste":                                                     rename_map[col] = "Poste"
+        elif s in {"handicap_physique", "handicap"}:                          rename_map[col] = "Handicap_Physique"
+        elif s in {"maladie_chronique", "maladies_chroniques"}:               rename_map[col] = "Maladie_Chronique"
+        elif s in {"alcool", "consommation_alcool"}:                          rename_map[col] = "Alcool"
+        elif s in {"fumez_vous", "fumeur", "consommation_tabac", "tabac"}:    rename_map[col] = "Fumeur"
+        elif s in {"pratique_de_l_alcool", "pratique_alcool"}:               rename_map[col] = "Pratique_Alcool"
+        elif s in {"suivi_pour_un_probleme_psychologique", "suivi_psychologique",
+                   "suivi_psy", "probleme_psychologique"}:                    rename_map[col] = "Suivi_Psychologique"
         else:
             csv_match = {csv: q for csv, q in zip(CSV_Q_COLS, Q_COLS)}
             if s in csv_match:
@@ -384,21 +368,21 @@ def preparer_base(df_in: pd.DataFrame) -> pd.DataFrame:
     if missing:
         raise ValueError("Colonnes manquantes : " + ", ".join(missing))
 
-    df[Q_COLS] = df[Q_COLS].apply(pd.to_numeric, errors="coerce")
-    df["score_stress"] = df[Q_COLS].sum(axis=1, min_count=1).clip(lower=0, upper=SCORE_STRESS_MAX)
+    df[Q_COLS]           = df[Q_COLS].apply(pd.to_numeric, errors="coerce")
+    df["score_stress"]   = df[Q_COLS].sum(axis=1, min_count=1).clip(lower=0, upper=SCORE_STRESS_MAX)
     df["Score_Stress_Total"] = df["score_stress"]
-    df["ICM_i"] = (df["score_stress"] / SCORE_STRESS_MAX) * 100
-    df["TP_i"]  = (1 - df["score_stress"] / SCORE_STRESS_MAX) * 100
+    df["ICM_i"]          = (df["score_stress"] / SCORE_STRESS_MAX) * 100
+    df["TP_i"]           = (1 - df["score_stress"] / SCORE_STRESS_MAX) * 100
 
     if "Age" in df.columns:
         df["Age"] = pd.to_numeric(df["Age"], errors="coerce")
         df["Tranche_Age"] = np.select(
             [df["Age"] <= 20,
-            (df["Age"] >= 21) & (df["Age"] < 30),
-            (df["Age"] >= 30) & (df["Age"] < 40),
-            (df["Age"] >= 40) & (df["Age"] < 50),
-            (df["Age"] >= 50) & (df["Age"] < 60),
-            df["Age"] >= 60],
+             (df["Age"] >= 21) & (df["Age"] < 30),
+             (df["Age"] >= 30) & (df["Age"] < 40),
+             (df["Age"] >= 40) & (df["Age"] < 50),
+             (df["Age"] >= 50) & (df["Age"] < 60),
+             df["Age"] >= 60],
             ["20 ans et moins","21-29 ans","30-39 ans","40-49 ans","50-59 ans","60 ans et plus"],
             default="",
         )
@@ -426,7 +410,7 @@ def preparer_base(df_in: pd.DataFrame) -> pd.DataFrame:
         df["Anciennete"] = pd.to_numeric(df["Anciennete"], errors="coerce")
         df["anciennete_cat"] = np.select(
             [df["Anciennete"] <= 2, df["Anciennete"] <= 5,
-            df["Anciennete"] <= 10, df["Anciennete"] <= 20],
+             df["Anciennete"] <= 10, df["Anciennete"] <= 20],
             ["0-2 ans","3-5 ans","6-10 ans","11-20 ans"],
             default="20 ans et plus",
         )
@@ -437,8 +421,8 @@ def preparer_base(df_in: pd.DataFrame) -> pd.DataFrame:
 
     df["niveau"] = np.select(
         [df["score_stress"] <= 13,
-        (df["score_stress"] > 13) & (df["score_stress"] <= 26),
-        (df["score_stress"] > 26) & (df["score_stress"] <= 40)],
+         (df["score_stress"] > 13) & (df["score_stress"] <= 26),
+         (df["score_stress"] > 26) & (df["score_stress"] <= 40)],
         ["Niveau de stress faible","Niveau de stress modere","Niveau de stress eleve"],
         default="",
     )
@@ -449,8 +433,8 @@ def preparer_base(df_in: pd.DataFrame) -> pd.DataFrame:
 def familles_filtres(df: pd.DataFrame):
     specs = {
         "Variables sociodemographiques": [
-            ("Sexe",               "Sexe"),
-            ("Tranche d'Age",      "Tranche_Age"),
+            ("Sexe",                   "Sexe"),
+            ("Tranche d'Age",          "Tranche_Age"),
             ("Situation matrimoniale", "Situation_matrimoniale"),
         ],
         "Variables anthropometriques": [
@@ -464,12 +448,12 @@ def familles_filtres(df: pd.DataFrame):
             ("Poste",      "Poste"),
         ],
         "Variables de sante": [
-            ("Handicap physique", "Handicap_Physique"),
-            ("Maladie chronique", "Maladie_Chronique"),
-            ("Alcool", "Alcool"),
-            ("Fumeur", "Fumeur"),
+            ("Handicap physique",    "Handicap_Physique"),
+            ("Maladie chronique",    "Maladie_Chronique"),
+            ("Alcool",               "Alcool"),
+            ("Fumeur",               "Fumeur"),
             ("Pratique de l'alcool", "Pratique_Alcool"),
-            ("Suivi psychologique", "Suivi_Psychologique"),
+            ("Suivi psychologique",  "Suivi_Psychologique"),
         ],
     }
     familles, label_to_col = {}, {}
@@ -491,8 +475,8 @@ def familles_filtres(df: pd.DataFrame):
 
 def pictogramme_card(value, title, mode="stress", scale_max=100.0):
     total_icons = 10
-    val   = max(0.0, min(float(scale_max), float(value)))
-    units = (val / float(scale_max)) * total_icons
+    val        = max(0.0, min(float(scale_max), float(value)))
+    units      = (val / float(scale_max)) * total_icons
     full_icons = int(np.floor(units))
     partial    = units - full_icons
     norm       = (val / float(scale_max)) * 100.0
@@ -509,23 +493,32 @@ def pictogramme_card(value, title, mode="stress", scale_max=100.0):
     if mode == "stress":
         if norm < 30:
             color, title_msg = "#4fb77e", "Stabilite"
-            msg = f"Le niveau de stress est de {txt_value}. Equilibre globalement stable avec une pression percue faible. Maintenir les routines de recuperation et la charge actuelle."
+            msg = (f"Le niveau de stress est de {txt_value}. Equilibre globalement stable "
+                   f"avec une pression percue faible. Maintenir les routines de recuperation "
+                   f"et la charge actuelle.")
         elif norm < 60:
             color, title_msg = "#e0b33f", "Vigilance"
-            msg = f"Le niveau de stress est de {txt_value}. Pression reelle et signes de vigilance. Renforcer la priorisation, prevenir la surcharge et surveiller l'evolution."
+            msg = (f"Le niveau de stress est de {txt_value}. Pression reelle et signes de "
+                   f"vigilance. Renforcer la priorisation, prevenir la surcharge et surveiller l'evolution.")
         else:
             color, title_msg = "#e25555", "Alerte rouge"
-            msg = f"Le niveau de stress est de {txt_value}. Zone critique avec risque d'epuisement eleve. Recommandation: ajuster la charge, renforcer le soutien et agir rapidement."
+            msg = (f"Le niveau de stress est de {txt_value}. Zone critique avec risque "
+                   f"d'epuisement eleve. Recommandation: ajuster la charge, renforcer le "
+                   f"soutien et agir rapidement.")
     else:
         if norm < 40:
             color, title_msg = "#e25555", "Niveau fragile"
-            msg = f"Le taux de productivite est de {txt_value}. Niveau fragile avec performance sous tension. Un soutien organisationnel et un allègement ciblé sont recommandés."
+            msg = (f"Le taux de productivite est de {txt_value}. Niveau fragile avec "
+                   f"performance sous tension. Un soutien organisationnel et un allègement "
+                   f"ciblé sont recommandés.")
         elif norm < 70:
             color, title_msg = "#e0b33f", "Niveau intermediaire"
-            msg = f"Le taux de productivite est de {txt_value}. Niveau correct mais sensible a la surcharge. Stabiliser les flux de travail et limiter les interruptions."
+            msg = (f"Le taux de productivite est de {txt_value}. Niveau correct mais sensible "
+                   f"a la surcharge. Stabiliser les flux de travail et limiter les interruptions.")
         else:
             color, title_msg = "#4fb77e", "Niveau favorable"
-            msg = f"Le taux de productivite est de {txt_value}. Capacite operationnelle solide et durable. Consolider les pratiques efficaces et préserver l'equilibre."
+            msg = (f"Le taux de productivite est de {txt_value}. Capacite operationnelle "
+                   f"solide et durable. Consolider les pratiques efficaces et préserver l'equilibre.")
 
     def person_svg(c, size=20):
         return (
@@ -537,12 +530,9 @@ def pictogramme_card(value, title, mode="stress", scale_max=100.0):
 
     icons = []
     for i in range(total_icons):
-        if i < full_icons:
-            ratio = 1.0
-        elif i == full_icons:
-            ratio = partial
-        else:
-            ratio = 0.0
+        if i < full_icons:       ratio = 1.0
+        elif i == full_icons:    ratio = partial
+        else:                    ratio = 0.0
         width = ratio * 100.0
         icons.append(
             f'<span class="picto-icon">'
@@ -553,56 +543,44 @@ def pictogramme_card(value, title, mode="stress", scale_max=100.0):
 
     return f"""
     <div class="pcard">
-    <div class="pcard-head"></div>
-    <div class="pcard-body">
+      <div class="pcard-head"></div>
+      <div class="pcard-body">
         <div class="pcard-title">{title}</div>
         <div class="pcard-row">
-        <div class="pcard-grid">{''.join(icons)}</div>
-        <div class="pcard-right">
+          <div class="pcard-grid">{''.join(icons)}</div>
+          <div class="pcard-right">
             <div class="pcard-value">{label_value}</div>
             <div class="pcard-caption">{unit_lbl}</div>
-        </div>
+          </div>
         </div>
         <div class="pcard-alert" style="color:{color};">{title_msg}</div>
         <div class="pcard-msg">{msg}</div>
-    </div>
+      </div>
     </div>
     """
 
 
 def construire_psy_gauge(valeur: float, titre: str, mode: str = "stress") -> go.Figure:
     if mode == "stress":
-        steps = [
-            {"range": [0,  35], "color": "#4CAF50"},
-            {"range": [35, 65], "color": "#FFC107"},
-            {"range": [65,100], "color": "#F44336"},
-        ]
+        steps     = [{"range":[0,35],"color":"#4CAF50"},{"range":[35,65],"color":"#FFC107"},{"range":[65,100],"color":"#F44336"}]
         bar_color = "#F44336" if valeur >= 65 else ("#FFC107" if valeur >= 35 else "#4CAF50")
     else:
-        steps = [
-            {"range": [0,  35], "color": "#F44336"},
-            {"range": [35, 65], "color": "#FFC107"},
-            {"range": [65,100], "color": "#4CAF50"},
-        ]
+        steps     = [{"range":[0,35],"color":"#F44336"},{"range":[35,65],"color":"#FFC107"},{"range":[65,100],"color":"#4CAF50"}]
         bar_color = "#4CAF50" if valeur >= 65 else ("#FFC107" if valeur >= 35 else "#F44336")
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=round(valeur, 1),
-        number={"suffix": "%", "font": {"size": 32, "family": "Sora", "color": "#0f172a"}},
-        title={"text": titre, "font": {"size": 14, "family": "Sora", "color": "#0f172a"}},
+        number={"suffix":"%","font":{"size":32,"family":"Sora","color":"#0f172a"}},
+        title={"text":titre,"font":{"size":14,"family":"Sora","color":"#0f172a"}},
         gauge={
-            "axis": {"range": [0, 100], "tickfont": {"color": "#64748b", "size": 10}},
-            "bar":  {"color": bar_color, "thickness": 0.72},
-            "bgcolor": "#f8fafc",
-            "bordercolor": "#e2e8f0",
-            "borderwidth": 1,
-            "steps": steps,
-            "threshold": {
-                "line": {"color": "#64748b", "width": 2},
-                "thickness": 0.8,
-                "value": 50,
-            },
+            "axis":      {"range":[0,100],"tickfont":{"color":"#64748b","size":10}},
+            "bar":       {"color":bar_color,"thickness":0.72},
+            "bgcolor":   "#f8fafc",
+            "bordercolor":"#e2e8f0",
+            "borderwidth":1,
+            "steps":     steps,
+            "threshold": {"line":{"color":"#64748b","width":2},"thickness":0.8,"value":50},
         },
     ))
     fig.update_layout(
@@ -629,14 +607,18 @@ with _col_top:
         'border-radius:10px;display:flex;align-items:center;justify-content:center;">'
         '<i class="fas fa-brain" style="color:white;font-size:15px;"></i></div>'
         '<div>'
-        '<div style="font-size:16px;font-weight:700;color:#1e293b;font-family:\'Plus Jakarta Sans\',sans-serif;">Charge Mentale & Stress</div>'
-        f'<div style="font-size:11px;color:#64748b;margin-top:1px;font-family:\'Plus Jakarta Sans\',sans-serif;">Suivi de la charge mentale, du risque d\'épuisement et de la capacité productive · {COMPANY}</div>'
+        '<div style="font-size:16px;font-weight:700;color:#1e293b;'
+        'font-family:\'Plus Jakarta Sans\',sans-serif;">Charge Mentale & Stress</div>'
+        f'<div style="font-size:11px;color:#64748b;margin-top:1px;'
+        f'font-family:\'Plus Jakarta Sans\',sans-serif;">'
+        f'Suivi de la charge mentale, du risque d\'épuisement et de la capacité productive · {COMPANY}</div>'
         '</div></div>',
         unsafe_allow_html=True,
     )
 with _col_back:
     if st.button("← Accueil", key="back_home_cm", use_container_width=True):
         st.switch_page("app.py")
+
 
 # ============================================================
 # CHARGEMENT DES DONNÉES
@@ -677,32 +659,32 @@ except Exception as e:
     st.error(f"❌ Erreur lors du chargement : {e}")
     st.stop()
 
+
 # ============================================================
 # TABLEAU DE BORD
 # ============================================================
-st.markdown(
-    """
-    <div class="hero">
-    <h1>Audit de la Charge Mentale et du Stress des Employés — Tableau de Bord</h1>
-    <p>Pilotage psychologique et analyses statistiques.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<div class="hero">
+  <h1>Audit de la Charge Mentale et du Stress des Employés — Tableau de Bord</h1>
+  <p>Pilotage psychologique et analyses statistiques.</p>
+</div>
+""", unsafe_allow_html=True)
 
 tab_pilotage, tab_analyse = st.tabs(["Pilotage", "Analyse des données"])
 
-# ── TAB PILOTAGE ─────────────────────────────────────────────
+
+# ============================================================
+# TAB 1 — PILOTAGE
+# ============================================================
 with tab_pilotage:
-    st.markdown(
-        """
-        <div class="filters-panel">
-        <p class="filters-title">Filtres d'analyse</p>
-        <p class="filters-sub">Affinez rapidement le segment observé pour une lecture psychologique précise.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+
+    # ── Filtres ──────────────────────────────────────────────
+    st.markdown("""
+    <div class="filters-panel">
+      <p class="filters-title">Filtres d'analyse</p>
+      <p class="filters-sub">Affinez rapidement le segment observé pour une lecture psychologique précise.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     familles, label_to_col = familles_filtres(df)
     if not familles:
@@ -718,164 +700,201 @@ with tab_pilotage:
 
     df_v  = df if mod == "Tous" else df[df[var].astype(str) == mod]
     n     = len(df_v)
-    age_m = float(df_v["Age"].median()) if ("Age" in df_v.columns and n > 0) else 0.0
+    n_base = max(n, 1)
+
+    # ── Calculs KPI ───────────────────────────────────────────
+    age_m = float(df_v["Age"].median())   if ("Age"   in df_v.columns and n > 0) else 0.0
     ph    = float((df_v["Sexe"].astype(str).str.lower() == "homme").mean() * 100) if ("Sexe" in df_v.columns and n > 0) else 0.0
     pf    = float((df_v["Sexe"].astype(str).str.lower() == "femme").mean() * 100) if ("Sexe" in df_v.columns and n > 0) else 0.0
     icm_n = float(df_v["ICM_i"].median()) if ("ICM_i" in df_v.columns and n > 0) else 0.0
     icm10 = icm_n / 10.0
-    tp    = float(df_v["TP_i"].median()) if ("TP_i" in df_v.columns and n > 0) else 0.0
+    tp    = float(df_v["TP_i"].median())  if ("TP_i"  in df_v.columns and n > 0) else 0.0
 
-    # ── Genre dominant uniquement ─────────────────────────────────────────
+    # ── Genre dominant uniquement ─────────────────────────────
     if ph >= pf:
         genre_icon, genre_color, genre_label, genre_pct = "♂", "#5a63d8", "Hommes", ph
     else:
         genre_icon, genre_color, genre_label, genre_pct = "♀", "#ff5fa5", "Femmes", pf
 
-    # ── Situation matrimoniale dominante ─────────────────────────────────
+    # ── Situation matrimoniale dominante ──────────────────────
     sit_col_m = "Situation_matrimoniale"
     if sit_col_m in df_v.columns and n > 0:
-        sit_counts   = df_v[sit_col_m].astype(str).str.strip().value_counts(dropna=True)
-        sit_dom_lbl  = sit_counts.index[0] if not sit_counts.empty else "—"
-        sit_dom_pct  = float(sit_counts.iloc[0] / n * 100) if not sit_counts.empty else 0.0
+        sit_counts  = df_v[sit_col_m].astype(str).str.strip().value_counts(dropna=True)
+        sit_dom_lbl = sit_counts.index[0]      if not sit_counts.empty else "—"
+        sit_dom_pct = float(sit_counts.iloc[0] / n * 100) if not sit_counts.empty else 0.0
     else:
         sit_dom_lbl, sit_dom_pct = "—", 0.0
 
+    # ── Bande KPI ─────────────────────────────────────────────
     k1, k2, k3, k4 = st.columns(4, gap="large")
     k1.markdown(
-        f'<div class="kpi-strip"><div class="kpi-accent" style="background:#ff8f9a;"></div>'
+        f'<div class="kpi-strip">'
+        f'<div class="kpi-accent" style="background:#ff8f9a;"></div>'
         f'<div class="kpi-icon-wrap"><span class="kpi-icon" style="background:#ff8f9a;">🏢</span></div>'
-        f'<div class="kpi-body"><div class="klabel">Employés</div><div class="kval">{n}</div></div></div>',
+        f'<div class="kpi-body"><div class="klabel">Employés</div><div class="kval">{n}</div></div>'
+        f'</div>',
         unsafe_allow_html=True,
     )
     k2.markdown(
-        f'<div class="kpi-strip"><div class="kpi-accent" style="background:{genre_color};"></div>'
+        f'<div class="kpi-strip">'
+        f'<div class="kpi-accent" style="background:{genre_color};"></div>'
         f'<div class="kpi-icon-wrap"><span class="kpi-icon" style="background:{genre_color};">{genre_icon}</span></div>'
-        f'<div class="kpi-body"><div class="klabel">{genre_label}</div><div class="kval">{genre_pct:.1f}%</div></div></div>',
+        f'<div class="kpi-body"><div class="klabel">{genre_label}</div><div class="kval">{genre_pct:.1f}%</div></div>'
+        f'</div>',
         unsafe_allow_html=True,
     )
     k3.markdown(
-        f'<div class="kpi-strip"><div class="kpi-accent" style="background:#4fc785;"></div>'
+        f'<div class="kpi-strip">'
+        f'<div class="kpi-accent" style="background:#4fc785;"></div>'
         f'<div class="kpi-icon-wrap"><span class="kpi-icon" style="background:#4fc785;">📊</span></div>'
-        f'<div class="kpi-body"><div class="klabel">Âge moyen</div><div class="kval">{age_m:.1f} ans</div></div></div>',
+        f'<div class="kpi-body"><div class="klabel">Âge moyen</div><div class="kval">{age_m:.1f} ans</div></div>'
+        f'</div>',
         unsafe_allow_html=True,
     )
     k4.markdown(
-        f'<div class="kpi-strip"><div class="kpi-accent" style="background:#e98a2f;"></div>'
+        f'<div class="kpi-strip">'
+        f'<div class="kpi-accent" style="background:#e98a2f;"></div>'
         f'<div class="kpi-icon-wrap"><span class="kpi-icon" style="background:#e98a2f;">💍</span></div>'
-        f'<div class="kpi-body"><div class="klabel">Sit. matrimoniale</div>'
+        f'<div class="kpi-body">'
+        f'<div class="klabel">Sit. matrimoniale</div>'
         f'<div class="kval" style="font-size:18px;padding-top:4px;">{sit_dom_lbl}</div>'
-        f'<div class="klabel">{sit_dom_pct:.1f}%</div></div></div>',
+        f'<div class="klabel">{sit_dom_pct:.1f}%</div>'
+        f'</div></div>',
         unsafe_allow_html=True,
     )
-    n_base = max(n, 1)
+
+    # ── Distribution des niveaux de stress ───────────────────
     pct_f = (df_v["niveau"] == "Niveau de stress faible").sum()  * 100 / n_base
     pct_m = (df_v["niveau"] == "Niveau de stress modere").sum()  * 100 / n_base
     pct_h = (df_v["niveau"] == "Niveau de stress eleve").sum()   * 100 / n_base
 
     st.markdown('<div style="height:14px;"></div>', unsafe_allow_html=True)
-    st.markdown(
-        f"""
-        <div class="section-card">
-        <h4 style="margin:0 0 10px 0;">Distribution des niveaux de stress</h4>
-        <div class="stress-grid">
-            <div class="stress-box"><div class="v" style="color:{PALETTE['teal']};">~{pct_f:.0f}%</div><div class="l">Faible</div></div>
-            <div class="stress-box"><div class="v" style="color:{PALETTE['orange']};">~{pct_m:.0f}%</div><div class="l">Modéré</div></div>
-            <div class="stress-box"><div class="v" style="color:{PALETTE['red']};">~{pct_h:.0f}%</div><div class="l">Élevé</div></div>
+    st.markdown(f"""
+    <div class="section-card">
+      <h4 style="margin:0 0 10px 0;">Distribution des niveaux de stress</h4>
+      <div class="stress-grid">
+        <div class="stress-box">
+          <div class="v" style="color:{PALETTE['teal']};">~{pct_f:.0f}%</div>
+          <div class="l">Faible</div>
         </div>
+        <div class="stress-box">
+          <div class="v" style="color:{PALETTE['orange']};">~{pct_m:.0f}%</div>
+          <div class="l">Modéré</div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        <div class="stress-box">
+          <div class="v" style="color:{PALETTE['red']};">~{pct_h:.0f}%</div>
+          <div class="l">Élevé</div>
+        </div>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
 
+    # ── Pie chart éclaté — Répartition des niveaux ────────────
     st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown('<h4 style="margin:0 0 10px 0;">Répartition</h4>', unsafe_allow_html=True)
+
     pie_df = pd.DataFrame({
-        "Niveau":   ["Faible","Modéré","Élevé"],
+        "Niveau":   ["Faible", "Modéré", "Élevé"],
         "Effectif": [
             int((df_v["niveau"] == "Niveau de stress faible").sum()),
             int((df_v["niveau"] == "Niveau de stress modere").sum()),
             int((df_v["niveau"] == "Niveau de stress eleve").sum()),
         ],
+        "Couleur": [PALETTE["teal"], PALETTE["orange"], PALETTE["red"]],
     })
     pie_df = pie_df[pie_df["Effectif"] > 0].copy()
-    pie_df["Pourcentage_txt"] = (
-        pie_df["Effectif"].div(max(pie_df["Effectif"].sum(), 1)).mul(100).map(lambda v: f"{v:.2f}".replace(".", ",") + "%")
-    )
-    fig_pie = px.pie(
-        pie_df, names="Niveau", values="Effectif", hole=0.42,
-        color="Niveau", custom_data=["Pourcentage_txt"],
-        color_discrete_map={"Faible": PALETTE["teal"], "Modéré": PALETTE["orange"], "Élevé": PALETTE["red"]},
-    )
-    style_figure(fig_pie, height=560)
+    total_pie = pie_df["Effectif"].sum()
+    pie_df["Pct"] = pie_df["Effectif"] / max(total_pie, 1) * 100
+
+    fig_pie = go.Figure(go.Pie(
+        labels=pie_df["Niveau"],
+        values=pie_df["Effectif"],
+        # ── Éclatement des tranches ───────────────────────────
+        pull=[0.06, 0.10, 0.08][:len(pie_df)],
+        marker=dict(
+            colors=pie_df["Couleur"].tolist(),
+            line=dict(color="#ffffff", width=3),
+        ),
+        # ── Labels à l'intérieur pour éviter les débordements ─
+        textposition="inside",
+        texttemplate="<b>%{label}</b><br>%{percent:.1%}",
+        textfont=dict(size=13, family="Plus Jakarta Sans", color="#ffffff"),
+        insidetextorientation="horizontal",
+        hovertemplate="<b>%{label}</b><br>Effectif : %{value}<br>Part : %{percent:.1%}<extra></extra>",
+        sort=False,
+    ))
     fig_pie.update_layout(
-        margin=dict(l=12, r=12, t=10, b=28),
-        legend=dict(orientation="h", y=-0.08, x=0.5, xanchor="center", font=dict(size=14)),
-    )
-    fig_pie.update_traces(
-        pull=[0.06, 0.09, 0.12][:len(pie_df)],
-        texttemplate="%{customdata[0]}",
-        textposition="outside",
-        textfont=dict(size=18, color=PALETTE["ink"]),
-        marker=dict(line=dict(color="#ffffff", width=3)),
-        hovertemplate="<b>%{label}</b><br>Effectif: %{value}<br>Pourcentage: %{customdata[0]}<extra></extra>",
+        height=460,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        # ── Marges réduites : évite que le chart soit trop petit ─
+        margin=dict(l=20, r=20, t=30, b=50),
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            y=-0.06, x=0.5, xanchor="center",
+            font=dict(size=13, family="Plus Jakarta Sans"),
+        ),
     )
     st.plotly_chart(fig_pie, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
+    # ── Pictogrammes ICM & Productivité ───────────────────────
     st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
     g1, g2 = st.columns(2, gap="large")
     with g1:
-        st.markdown(pictogramme_card(icm10, "Indice de Charge Mentale (ICM) sur 10", mode="stress", scale_max=10.0), unsafe_allow_html=True)
+        st.markdown(
+            pictogramme_card(icm10, "Indice de Charge Mentale (ICM) sur 10", mode="stress", scale_max=10.0),
+            unsafe_allow_html=True,
+        )
     with g2:
-        st.markdown(pictogramme_card(tp, "Taux de Productivité", mode="productivite", scale_max=100.0), unsafe_allow_html=True)
+        st.markdown(
+            pictogramme_card(tp, "Taux de Productivité", mode="productivite", scale_max=100.0),
+            unsafe_allow_html=True,
+        )
 
 
-# ── TAB ANALYSE ──────────────────────────────────────────────
+# ============================================================
+# TAB 2 — ANALYSE DES DONNÉES
+# ============================================================
 with tab_analyse:
     df_an = df
 
-    # ── Analyses univariées ──────────────────────────────────
+    # ── Analyses univariées ───────────────────────────────────
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown("### Analyses univariées")
-    all_cols = list(df_an.columns)
+
     excluded_cols = {
-        "ID",
-        "taille_cm",
-        "Taille_cm",
-        "Age",
-        "Anciennete",
-        "Poids_kg",
-        "score_stress",
-        "score_stress_total",
-        "Score_Stress_Total",
-        "ICM_i",
-        "TP_i",
+        "ID", "taille_cm", "Taille_cm", "Age", "Anciennete", "Poids_kg",
+        "score_stress", "score_stress_total", "Score_Stress_Total", "ICM_i", "TP_i",
     }
-    all_cols = [c for c in all_cols if c not in excluded_cols]
+    all_cols = [c for c in df_an.columns if c not in excluded_cols]
+
     if not all_cols:
         st.warning("Aucune variable disponible pour l'analyse.")
         st.markdown("</div>", unsafe_allow_html=True)
         st.stop()
+
     var_uni       = st.selectbox("Choisir une variable", all_cols, key="uni_var", format_func=label_variable)
     var_uni_label = label_variable(var_uni)
     series_uni    = df_an[var_uni]
 
+    # ── Cas : question Likert ─────────────────────────────────
     if var_uni in Q_COLS:
         likert_series = map_likert(series_uni)
         freq = pd.Series(likert_series).value_counts(dropna=False).reindex(LIKERT_ORDER).reset_index()
-        freq.columns = ["Modalite","Effectif"]
+        freq.columns = ["Modalite", "Effectif"]
         freq["Pourcentage"] = (freq["Effectif"] / max(len(series_uni), 1) * 100).round(2)
-        fig_uni = px.bar(freq, x="Modalite", y="Effectif", text="Pourcentage",
-                        title=f"Distribution — {var_uni_label}", color="Modalite",
-                        color_discrete_sequence=CHART_SEQUENCE)
+        fig_uni = px.bar(
+            freq, x="Modalite", y="Effectif", text="Pourcentage",
+            title=f"Distribution — {var_uni_label}", color="Modalite",
+            color_discrete_sequence=CHART_SEQUENCE,
+        )
         fig_uni.update_traces(
-            texttemplate="%{text:.1f}%",
-            textposition="inside",
+            texttemplate="%{text:.1f}%", textposition="inside",
             insidetextfont=dict(color="#ffffff", family="Arial Black", size=14),
-            insidetextanchor="middle",
-            textangle=0,
-            cliponaxis=False,
+            insidetextanchor="middle", textangle=0, cliponaxis=False,
         )
         style_bar_figure(fig_uni, height=420)
         fig_uni.update_layout(showlegend=False, xaxis_title="", uniformtext_minsize=11, uniformtext_mode="show")
@@ -883,13 +902,14 @@ with tab_analyse:
         st.plotly_chart(fig_uni, use_container_width=True)
         st.dataframe(freq, use_container_width=True)
 
+    # ── Cas : Sexe ────────────────────────────────────────────
     elif var_uni == "Sexe":
         if "niveau" not in df_an.columns:
             st.warning("La colonne 'niveau' est absente.")
         else:
-            df_s = df_an[["Sexe","niveau"]].copy()
+            df_s = df_an[["Sexe", "niveau"]].copy()
             df_s["Sexe"] = df_s["Sexe"].astype(str).str.strip().str.title()
-            df_s = df_s[df_s["Sexe"].isin(["Femme","Homme"])]
+            df_s = df_s[df_s["Sexe"].isin(["Femme", "Homme"])]
             if df_s.empty:
                 st.warning("Valeurs de sexe non exploitables.")
             else:
@@ -898,10 +918,11 @@ with tab_analyse:
                 ux1, ux2   = st.columns([1.05, 1.25], gap="large")
                 with ux1:
                     fig_sexe = px.pie(
-                        pd.DataFrame({"Sexe":["Femme","Homme"],"Effectif":[int(sex_counts["Femme"]),int(sex_counts["Homme"])]}),
+                        pd.DataFrame({"Sexe":["Femme","Homme"],
+                                      "Effectif":[int(sex_counts["Femme"]),int(sex_counts["Homme"])]}),
                         names="Sexe", values="Effectif", hole=0.58,
                         color="Sexe",
-                        color_discrete_map={"Femme": PALETTE["pink"], "Homme": PALETTE["blue"]},
+                        color_discrete_map={"Femme":PALETTE["pink"],"Homme":PALETTE["blue"]},
                         title="Répartition par sexe",
                     )
                     style_figure(fig_sexe, height=360)
@@ -921,28 +942,30 @@ with tab_analyse:
                     part_dom = max(float(sex_pct["Femme"]), float(sex_pct["Homme"]))
                     st.markdown(
                         f'<div style="background:#f5f8ff;border:1px solid #dce7f7;border-radius:12px;padding:14px 16px;">'
-                        f'<div style="font-size:16px;color:#3b4d6f;line-height:1.6;">Une prédominance <b>{dominant}</b> est observée ({part_dom:.1f}%, écart de {ecart:.1f} pts).</div></div>',
+                        f'<div style="font-size:16px;color:#3b4d6f;line-height:1.6;">'
+                        f'Une prédominance <b>{dominant}</b> est observée ({part_dom:.1f}%, écart de {ecart:.1f} pts).'
+                        f'</div></div>',
                         unsafe_allow_html=True,
                     )
 
+    # ── Cas : Tranche d'âge ───────────────────────────────────
     elif var_uni == "Tranche_Age":
         freq = series_uni.astype(str).value_counts(dropna=False).reset_index()
-        freq.columns = ["Tranche_Age","Effectif"]
+        freq.columns = ["Tranche_Age", "Effectif"]
         order = ["60 ans et plus","50-59 ans","40-49 ans","30-39 ans","21-29 ans","20 ans et moins"]
         freq["Tranche_Age"] = pd.Categorical(freq["Tranche_Age"], categories=order, ordered=True)
         freq = freq.sort_values("Tranche_Age").dropna(subset=["Tranche_Age"])
         freq["Pourcentage"] = (freq["Effectif"] / max(freq["Effectif"].sum(), 1) * 100).round(1)
         l_uni, r_uni = st.columns([1.7, 1.1], gap="large")
         with l_uni:
-            fig_uni = px.bar(freq, x="Pourcentage", y="Tranche_Age", orientation="h",
-                            text="Pourcentage", title="Distribution des tranches d'âge")
+            fig_uni = px.bar(
+                freq, x="Pourcentage", y="Tranche_Age", orientation="h",
+                text="Pourcentage", title="Distribution des tranches d'âge",
+            )
             fig_uni.update_traces(
-                texttemplate="%{text:.1f}%",
-                textposition="inside",
+                texttemplate="%{text:.1f}%", textposition="inside",
                 insidetextfont=dict(color="#ffffff", family="Arial Black", size=14),
-                insidetextanchor="middle",
-                textangle=0,
-                cliponaxis=False,
+                insidetextanchor="middle", textangle=0, cliponaxis=False,
             )
             style_bar_figure(fig_uni, height=520)
             fig_uni.update_layout(showlegend=False, xaxis_title="Pourcentage (%)", yaxis_title="")
@@ -950,33 +973,35 @@ with tab_analyse:
         with r_uni:
             for _, row in freq.iterrows():
                 st.markdown(
-                    f'<div style="background:#f5f8ff;border:1px solid #dce7f7;border-left:5px solid #5b95e6;border-radius:12px;padding:12px 14px;margin-bottom:10px;">'
+                    f'<div style="background:#f5f8ff;border:1px solid #dce7f7;'
+                    f'border-left:5px solid #5b95e6;border-radius:12px;padding:12px 14px;margin-bottom:10px;">'
                     f'<span style="font-weight:800;color:#24395f;">{row["Tranche_Age"]}</span>'
                     f' : {int(row["Effectif"])} ({row["Pourcentage"]:.1f}%)</div>',
                     unsafe_allow_html=True,
                 )
         st.dataframe(freq, use_container_width=True)
 
+    # ── Cas : variable numérique ──────────────────────────────
     elif pd.api.types.is_numeric_dtype(series_uni):
         fig_uni = px.histogram(df_an, x=var_uni, nbins=20, title=f"Distribution — {var_uni_label}")
         style_figure(fig_uni, height=420)
         st.plotly_chart(fig_uni, use_container_width=True)
         st.dataframe(series_uni.describe().to_frame("Statistiques"), use_container_width=True)
 
+    # ── Cas : variable catégorielle générique ─────────────────
     else:
         freq = series_uni.astype(str).value_counts(dropna=False).reset_index()
-        freq.columns = ["Modalite","Effectif"]
+        freq.columns = ["Modalite", "Effectif"]
         freq["Pourcentage"] = (freq["Effectif"] / max(len(series_uni), 1) * 100).round(2)
-        fig_uni = px.bar(freq, x="Modalite", y="Effectif", text="Pourcentage",
-                        title=f"Distribution — {var_uni_label}", color="Modalite",
-                        color_discrete_sequence=CHART_SEQUENCE)
+        fig_uni = px.bar(
+            freq, x="Modalite", y="Effectif", text="Pourcentage",
+            title=f"Distribution — {var_uni_label}", color="Modalite",
+            color_discrete_sequence=CHART_SEQUENCE,
+        )
         fig_uni.update_traces(
-            texttemplate="%{text:.1f}%",
-            textposition="inside",
+            texttemplate="%{text:.1f}%", textposition="inside",
             insidetextfont=dict(color="#ffffff", family="Arial Black", size=14),
-            insidetextanchor="middle",
-            textangle=0,
-            cliponaxis=False,
+            insidetextanchor="middle", textangle=0, cliponaxis=False,
         )
         style_bar_figure(fig_uni, height=420)
         fig_uni.update_layout(showlegend=False, uniformtext_minsize=11, uniformtext_mode="show")
@@ -986,14 +1011,15 @@ with tab_analyse:
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # ── Analyses bivariées ───────────────────────────────────
+    # ── Analyses bivariées ────────────────────────────────────
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown("### Analyses bivariées")
-    bi_cols = [c for c in all_cols if c != "Anciennete"]
-    bx1, bx2 = st.columns(2)
-    var_x       = bx1.selectbox("Variable 1", bi_cols, index=0, key="bi_x", format_func=label_variable)
+
+    bi_cols   = [c for c in all_cols if c != "Anciennete"]
+    bx1, bx2  = st.columns(2)
+    var_x       = bx1.selectbox("Variable 1", bi_cols, index=0,                          key="bi_x", format_func=label_variable)
     default_y   = 1 if len(bi_cols) > 1 else 0
-    var_y       = bx2.selectbox("Variable 2", bi_cols, index=default_y, key="bi_y", format_func=label_variable)
+    var_y       = bx2.selectbox("Variable 2", bi_cols, index=default_y,                  key="bi_y", format_func=label_variable)
     var_x_label = label_variable(var_x)
     var_y_label = label_variable(var_y)
 
@@ -1001,72 +1027,55 @@ with tab_analyse:
         st.warning("Choisissez deux variables différentes.")
     else:
         df_bi = df_an.copy()
-        if var_x in Q_COLS:
-            df_bi[var_x] = map_likert(df_bi[var_x])
-        if var_y in Q_COLS:
-            df_bi[var_y] = map_likert(df_bi[var_y])
+        if var_x in Q_COLS: df_bi[var_x] = map_likert(df_bi[var_x])
+        if var_y in Q_COLS: df_bi[var_y] = map_likert(df_bi[var_y])
+
         sx    = df_bi[var_x]
         sy    = df_bi[var_y]
         num_x = pd.api.types.is_numeric_dtype(sx) and var_x not in Q_COLS
         num_y = pd.api.types.is_numeric_dtype(sy) and var_y not in Q_COLS
         table_pct = None
 
-        # ── Fonction de rendu unifiée : stacked bar vertical ──
         def _render_stacked_bar(ct_pct, x_col, color_col, title, cat_orders=None):
-            grouped = ct_pct.reset_index().melt(
-                id_vars=x_col, var_name=color_col, value_name="Pourcentage"
-            )
+            grouped = ct_pct.reset_index().melt(id_vars=x_col, var_name=color_col, value_name="Pourcentage")
             grouped = grouped[grouped["Pourcentage"] > 0]
             fig = px.bar(
-                grouped,
-                x="Pourcentage",
-                y=x_col,
-                color=color_col,
-                barmode="stack",
-                text="Pourcentage",
-                orientation="h",
+                grouped, x="Pourcentage", y=x_col, color=color_col,
+                barmode="stack", text="Pourcentage", orientation="h",
                 color_discrete_sequence=BI_SEQUENCE,
                 category_orders=cat_orders or {},
             )
             fig.update_traces(
-                texttemplate="%{text:.1f}%",
-                textposition="inside",
+                texttemplate="%{text:.1f}%", textposition="inside",
                 insidetextanchor="middle",
                 textfont=dict(color="#ffffff", family="Arial Black", size=12),
-                textangle=0,
-                cliponaxis=False,
+                textangle=0, cliponaxis=False,
             )
             n_cats = grouped[x_col].nunique()
             height = max(420, 56 * n_cats + 170)
             style_stacked_figure(fig, height=height)
             fig.update_layout(
-                title=title,
-                xaxis_title="Pourcentage (%)",
-                yaxis_title="",
+                title=title, xaxis_title="Pourcentage (%)", yaxis_title="",
                 xaxis=dict(range=[0, 100]),
                 legend=dict(orientation="h", y=-0.18, x=0.5, xanchor="center"),
-                uniformtext_minsize=9,
-                uniformtext_mode="show",
+                uniformtext_minsize=9, uniformtext_mode="show",
             )
             fig.update_yaxes(automargin=True)
             st.plotly_chart(fig, use_container_width=True)
 
-        # ── Cas 1 : deux numériques ──
+        # Cas 1 : deux numériques
         if num_x and num_y:
             tmp = df_bi[[var_x, var_y]].apply(pd.to_numeric, errors="coerce").dropna()
             tmp["X_cl"] = pd.qcut(tmp[var_x], q=5, duplicates="drop").astype(str)
             tmp["Y_cl"] = pd.qcut(tmp[var_y], q=5, duplicates="drop").astype(str)
             ct     = pd.crosstab(tmp["X_cl"], tmp["Y_cl"])
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
-            cat_orders = {"X_cl": sorted(ct_pct.index.tolist())}
-            _render_stacked_bar(
-                ct_pct, "X_cl", "Y_cl",
-                f"Classes de {var_x_label} × classes de {var_y_label}",
-                cat_orders,
-            )
+            _render_stacked_bar(ct_pct, "X_cl", "Y_cl",
+                                f"Classes de {var_x_label} × classes de {var_y_label}",
+                                {"X_cl": sorted(ct_pct.index.tolist())})
             table_pct = ct_pct.copy()
 
-        # ── Cas 2 : numérique × catégorielle ──
+        # Cas 2 : numérique × catégorielle
         elif num_x and not num_y:
             tmp = df_bi[[var_x, var_y]].copy()
             tmp[var_x] = pd.to_numeric(tmp[var_x], errors="coerce")
@@ -1074,19 +1083,14 @@ with tab_analyse:
             tmp["X_cl"] = pd.qcut(tmp[var_x], q=5, duplicates="drop").astype(str)
             ct     = pd.crosstab(tmp["X_cl"], tmp[var_y].astype(str))
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
-            if var_y in Q_COLS:
-                ct_pct = ct_pct.reindex(columns=LIKERT_ORDER)
+            if var_y in Q_COLS: ct_pct = ct_pct.reindex(columns=LIKERT_ORDER)
             cat_orders = {"X_cl": sorted(ct_pct.index.tolist())}
-            if var_y in Q_COLS:
-                cat_orders[var_y] = LIKERT_ORDER
-            _render_stacked_bar(
-                ct_pct, "X_cl", var_y,
-                f"Classes de {var_x_label} × {var_y_label}",
-                cat_orders,
-            )
+            if var_y in Q_COLS: cat_orders[var_y] = LIKERT_ORDER
+            _render_stacked_bar(ct_pct, "X_cl", var_y,
+                                f"Classes de {var_x_label} × {var_y_label}", cat_orders)
             table_pct = ct_pct.copy()
 
-        # ── Cas 3 : catégorielle × numérique ──
+        # Cas 3 : catégorielle × numérique
         elif not num_x and num_y:
             tmp = df_bi[[var_x, var_y]].copy()
             tmp[var_y] = pd.to_numeric(tmp[var_y], errors="coerce")
@@ -1094,37 +1098,25 @@ with tab_analyse:
             tmp["Y_cl"] = pd.qcut(tmp[var_y], q=5, duplicates="drop").astype(str)
             ct     = pd.crosstab(tmp[var_x].astype(str), tmp["Y_cl"])
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
-            if var_x in Q_COLS:
-                ct_pct = ct_pct.reindex(index=LIKERT_ORDER)
+            if var_x in Q_COLS: ct_pct = ct_pct.reindex(index=LIKERT_ORDER)
             cat_orders = {}
-            if var_x in Q_COLS:
-                cat_orders[var_x] = LIKERT_ORDER
+            if var_x in Q_COLS: cat_orders[var_x] = LIKERT_ORDER
             cat_orders["Y_cl"] = sorted(ct_pct.columns.tolist())
-            _render_stacked_bar(
-                ct_pct, var_x, "Y_cl",
-                f"{var_x_label} × classes de {var_y_label}",
-                cat_orders,
-            )
+            _render_stacked_bar(ct_pct, var_x, "Y_cl",
+                                f"{var_x_label} × classes de {var_y_label}", cat_orders)
             table_pct = ct_pct.copy()
 
-        # ── Cas 4 : deux catégorielles ──
+        # Cas 4 : deux catégorielles
         else:
             ct     = pd.crosstab(df_bi[var_x].astype(str), df_bi[var_y].astype(str))
             ct_pct = (ct.div(ct.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(2).fillna(0)
-            if var_x in Q_COLS:
-                ct_pct = ct_pct.reindex(index=LIKERT_ORDER)
-            if var_y in Q_COLS:
-                ct_pct = ct_pct.reindex(columns=LIKERT_ORDER)
+            if var_x in Q_COLS: ct_pct = ct_pct.reindex(index=LIKERT_ORDER)
+            if var_y in Q_COLS: ct_pct = ct_pct.reindex(columns=LIKERT_ORDER)
             cat_orders = {}
-            if var_x in Q_COLS:
-                cat_orders[var_x] = LIKERT_ORDER
-            if var_y in Q_COLS:
-                cat_orders[var_y] = LIKERT_ORDER
-            _render_stacked_bar(
-                ct_pct, var_x, var_y,
-                f"{var_x_label} × {var_y_label}",
-                cat_orders,
-            )
+            if var_x in Q_COLS: cat_orders[var_x] = LIKERT_ORDER
+            if var_y in Q_COLS: cat_orders[var_y] = LIKERT_ORDER
+            _render_stacked_bar(ct_pct, var_x, var_y,
+                                f"{var_x_label} × {var_y_label}", cat_orders)
             table_pct = ct_pct.copy()
 
         if table_pct is not None:
