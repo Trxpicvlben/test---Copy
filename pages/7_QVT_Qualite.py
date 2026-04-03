@@ -1045,40 +1045,75 @@ def render_tab_detail(df_f: pd.DataFrame, question_map: dict) -> None:
                             f'text-align:center;border-radius:6px;min-width:80px;">'
                             f'{pctv:.1f}% ({raw})</td>'
                         )
-                    table_html.append('</tr>')
-                table_html.append('</tbody></table></div>')
-                total_html = '\n'.join(table_html)
-                # estimate height
-                h = min(600, 48 + len(display_df) * 44)
-                components.html(total_html, height=h)
+                    html_rows.append('</tr>')
+                html_rows.append('</tbody></table></div>')
+                h = min(600, 48 + len(counts) * 44)
+                components.html("\n".join(html_rows), height=h)
 
-    with tab3: 
-        st.header("Analyse finale")
-        st.write("Résumé global")
 
-        # --- Score final normalisé (compute on the filtered dataframe so the chart reacts to filters) ---
-        df_f["Score_final_normalise"] = (
-            df_f[list(question_map.values())]
-            .apply(pd.to_numeric, errors="coerce")
-            .apply(lambda x: ((x - 1) / 3) * 100)
-            .mean(axis=1)
-        )
 
-        # Classification Bon/Mauvais (on filtered set)
-        df_f["Categorie_Global"] = np.where(df_f["Score_final_normalise"] < 50, "Mauvais", "Bon")
+# ─────────────────────────────────────────────────────────────────────────────
+# 8. FONCTION PRINCIPALE
+# ─────────────────────────────────────────────────────────────────────────────
 
-        # --- Graphique Score Global (use filtered counts) ---
-        counts_global = df_f["Categorie_Global"].value_counts()
-        fig_global = px.pie(
-            names=counts_global.index,
-            values=counts_global.values,
-            title="Répartition des employés selon la Bonne ou la Mauvaise Qualité de Vie au Travail",
-            color=counts_global.index,
-            color_discrete_map={"Mauvais": C["red"], "Bon": C["green"]}
-        )
-        # make labels inside the pie white and bold for readability on colored slices
-        fig_global.update_traces(textinfo="percent+label", textfont=dict(color="white", size=12, family="Plus Jakarta Sans"), insidetextorientation='radial')
-        st.plotly_chart(fig_global, width='stretch', key="fig_global_tab3")
+def main():
+    st.set_page_config(
+        page_title="QVT Dashboard",
+        page_icon="❤️",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+    load_css()
+    render_topbar()
+
+    # Gestion du bouton "Accueil"
+    params = get_query_params_safe()
+    if params.get("back"):
+        try:
+            set_query_params_safe()
+            st.switch_page("app.py")
+        except Exception:
+            pass
+
+    # ── Import du fichier Excel ─────────────────────────────────────────────
+    uploaded = st.file_uploader("Importer un fichier Excel (.xlsx)", type=["xlsx", "xls"])
+    if uploaded is not None:
+        # Nouveau fichier importé → on charge et on stocke dans session_state
+        df_raw = load_excel(uploaded)
+        df_raw = add_derived_columns(df_raw)
+        st.session_state["qvt_df"] = df_raw          # ← persistance inter-pages
+
+    if "qvt_df" not in st.session_state:
+        st.info("Importez votre fichier Excel pour démarrer l'analyse.")
+        st.stop()
+
+    # À partir d'ici, on lit toujours depuis session_state
+    df_raw = st.session_state["qvt_df"]
+    question_map = resolve_questions(df_raw)
+
+    if not question_map:
+        st.error("Aucune colonne de question reconnue dans le fichier.")
+        st.stop()
+
+    df = compute_scores(df_raw, question_map)
+
+    # ── Filtres ────────────────────────────────────────────────────────────
+    df_f = render_filters(df)
+
+    if len(df_f) == 0:
+        st.warning("Aucun répondant correspondant aux filtres.")
+        st.stop()
+
+    # ── Onglets ────────────────────────────────────────────────────────────
+    tab1, tab2 = st.tabs(["Vue d'ensemble", "Analyses détaillées"])
+
+    with tab1:
+        render_tab_overview(df_f, question_map)
+
+    with tab2:
+        render_tab_detail(df_f, question_map)
+
+
 
 if __name__ == "__main__":
     main()
