@@ -1,0 +1,383 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Olympus Elites - Stratégie Complète de Développement</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background-color: #f8f5f0;
+            color: #1A1A1A;
+            line-height: 1.5;
+        }
+
+        /* Conteneur principal */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+
+        /* Styles génériques */
+        section {
+            padding: 2rem 2rem;
+            border-bottom: 1px solid #eae6de;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin: 1.5rem 0 0.8rem 0;
+            color: #1A2B4A;
+            border-left: 5px solid #C9A84C;
+            padding-left: 1rem;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            margin: 1.2rem 0 0.6rem 0;
+            color: #1A2B4A;
+            font-weight: 600;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Citation et encadrés */
+        .citation {
+            font-style: italic;
+            text-align: center;
+            color: #333;
+            font-size: 1.1rem;
+            padding: 1rem 2rem;
+            border-left: 4px solid #C9A84C;
+            background: #FFF8E8;
+            margin: 1.5rem 0;
+        }
+
+        .gold-border {
+            border-top: 3px solid #C9A84C;
+            border-bottom: 3px solid #C9A84C;
+            padding: 1.2rem 0;
+            margin: 1.8rem 0;
+        }
+
+        /* Tableaux */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        th {
+            background-color: #1A2B4A;
+            color: white;
+            padding: 12px 8px;
+            font-weight: 600;
+            border: 1px solid #2c3e66;
+        }
+
+        td {
+            border: 1px solid #ddd;
+            padding: 10px 8px;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) {
+            background-color: #F5F2EC;
+        }
+
+        .table-highlight {
+            background-color: #FFF8E8 !important;
+        }
+
+        /* Cartes récompenses */
+        .prize-card {
+            border-radius: 12px;
+            padding: 1.2rem 1.5rem;
+            margin: 1.8rem 0;
+            border-left: 6px solid;
+        }
+
+        .prize-intellect {
+            background: #F0EDFE;
+            border-left-color: #534AB7;
+        }
+        .prize-foot {
+            background: #EDFAF1;
+            border-left-color: #1D8A3A;
+        }
+        .prize-basket {
+            background: #FFF3E8;
+            border-left-color: #D15A00;
+        }
+        .prize-gym {
+            background: #FDE8F2;
+            border-left-color: #B03A6A;
+        }
+        .prize-art {
+            background: #EDE8F5;
+            border-left-color: #5A3E85;
+        }
+
+        /* Timeline / phases */
+        .phase-block {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 1.8rem 0;
+            border-left: 4px solid #C9A84C;
+            background: #FEFCF8;
+            padding: 1rem 1.5rem;
+        }
+        .phase-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            width: 180px;
+            color: #1A2B4A;
+        }
+        .phase-content {
+            flex: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            section {
+                padding: 1.5rem;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            th, td {
+                font-size: 0.8rem;
+                padding: 6px;
+            }
+            .phase-block {
+                flex-direction: column;
+            }
+            .phase-title {
+                width: auto;
+                margin-bottom: 8px;
+            }
+        }
+
+        footer {
+            background: #1A2B4A;
+            color: #e0e0e0;
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-pseudo {
+            display: inline-block;
+            background: #C9A84C;
+            color: #1A2B4A;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- HEADER AVEC LOGO (simulé) -->
+    <section style="padding-bottom: 0;">
+        <div class="text-center">
+            <div style="background: #f0ede8; width: 120px; height: 120px; border-radius: 60px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 3.5rem;">🏛️</div>
+            <h1 style="color: #C9A84C;">OLYMPUS ELITES</h1>
+            <p style="font-size: 1.3rem; font-weight: bold; color: #1A2B4A;">Stratégie Complète de Développement</p>
+            <p style="font-style: italic; color: #444;">Documentation Officielle du Projet</p>
+            <div class="gold-border"></div>
+            <p style="font-style: italic;">« La seule compétition qui récompense autant l'intelligence que l'athlétisme »</p>
+            <div class="gold-border"></div>
+            <p style="color: #666; font-size: 0.8rem;">Côte d'Ivoire · Édition 2025-2026</p>
+        </div>
+    </section>
+
+    <!-- BLOC 1 -->
+    <section>
+        <div class="gold-border text-center">
+            <h2>BLOC 1 — Présentation &amp; Identité du Projet</h2>
+        </div>
+        <h3>Qu'est-ce qu'Olympus Elites ?</h3>
+        <p>Olympus Elites est une initiative ambitieuse qui dépasse largement le cadre d'un simple programme scolaire ou d'une compétition inter-établissements. C'est avant tout un projet humain, construit autour de valeurs fondamentales telles que l'harmonie, la solidarité et le développement personnel, pour révéler le potentiel de chaque élève tout en renforçant les liens entre les jeunes.</p>
+        <p>Dans un environnement éducatif souvent marqué par la compétition individuelle, Olympus Elites propose une approche équilibrée, créant un espace où les élèves apprennent à évoluer ensemble, à se soutenir mutuellement et à construire une dynamique collective basée sur le respect, l'entraide et l'esprit d'équipe.</p>
+        <p>À travers ses activités — compétitions sportives, épreuves intellectuelles, formations et séminaires — Olympus Elites instaure une harmonie entre le corps et l'esprit. La solidarité, le développement personnel et l'engagement citoyen sont les piliers d’une génération unie tournée vers l’excellence.</p>
+        <div class="citation">
+            Olympus Elites est bien plus qu'un programme : c'est un mouvement. Un mouvement qui prône l'harmonie, la solidarité et le développement personnel.
+        </div>
+        
+        <h3>Les Trois Piliers Fondamentaux</h3>
+        <ul style="margin-left: 1.8rem;">
+            <li><strong>La Compétition</strong> : confrontations sportives, intellectuelles et artistiques entre lycées et collèges.</li>
+            <li><strong>La Formation</strong> : enseignement gratuit de la logique, discipline absente des programmes officiels.</li>
+            <li><strong>L'Orientation</strong> : séminaires annuels connectant les élèves aux universités et au monde professionnel.</li>
+        </ul>
+
+        <h3>Positionnement Stratégique</h3>
+        <table>
+            <thead>
+                <tr><th>Cible</th><th>Description</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Cible primaire</td><td>Élèves de lycée/collèges (15-22 ans) + universités partenaires</td></tr>
+                <tr><td>Cible secondaire</td><td>Parents, médias, entreprises locales, Ministère de l'Éducation</td></tr>
+                <tr><td>Valeur unique</td><td>Formation logique + compétition + orientation en un seul programme</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- BLOC 2 — Disciplines -->
+    <section>
+        <div class="gold-border text-center"><h2>BLOC 2 — Les 4 Disciplines de Compétition</h2></div>
+        <table>
+            <thead><tr><th>Discipline</th><th>Format terrain</th><th>Inscription</th><th>Critères de sélection</th></tr></thead>
+            <tbody>
+                <tr><td>Football</td><td>5 joueurs + 1 gardien (6v6)</td><td>Équipe de 11 inscrits</td><td>Présélection interne (interclasses)</td></tr>
+                <tr><td>Basketball</td><td>5 contre 5</td><td>Équipe de 5</td><td>Présélection interne</td></tr>
+                <tr><td>Intellectuel</td><td>Équipe de 4 élèves</td><td>4 membres</td><td>Culture générale, Histoire, Logique</td></tr>
+                <tr><td>Gymnastique</td><td>Individuel</td><td>Sélection individuelle</td><td>Enchaînement, sprint, saut, javelot, poids</td></tr>
+                <tr><td>L'Art</td><td>Individuel</td><td>Sélection individuelle</td><td>Dessin, créativité</td></tr>
+            </tbody>
+        </table>
+        <p><strong>Détails :</strong> Football en 6v6 (11 inscrits par établissement). Basketball 5v5. Épreuve intellectuelle : Culture générale (buzzer), Histoire (QCM/dissertation), Logique. Gymnastique : sprint, saut en longueur, lancer javelot, enchaînement, lancer poids. Art : dessin libre ou sur thème, expression picturale, originalité.</p>
+        <div class="citation">NOTE IMPORTANTE — Formation en Logique : Pratiquement aucun lycée en Côte d'Ivoire n'enseigne la logique formelle. Olympus Elites comble ce vide avec des séances gratuites.</div>
+    </section>
+
+    <!-- BLOC 2B RÉCOMPENSES -->
+    <section>
+        <div class="gold-border text-center"><h2>BLOC 2B — Récompenses Officielles</h2></div>
+        <p>Les récompenses valorisent l'excellence et la solidarité. Des récompenses surprises des partenaires et bourses d'études (réductions de scolarité) sont également prévues.</p>
+        
+        <div class="prize-card prize-intellect"><strong>🧠 Rubrique Intellectuelle</strong><br>• 250 000 FCFA pour l'équipe victorieuse<br>• Médailles officielles + Trophée<br>• Bourse d'études (réduction scolarité universités partenaires)</div>
+        <div class="prize-card prize-foot"><strong>⚽ Rubrique Football</strong><br>• 400 000 FCFA pour l'équipe gagnante<br>• Médailles + Trophée + Bourse d'études</div>
+        <div class="prize-card prize-basket"><strong>🏀 Rubrique Basketball</strong><br>• 250 000 FCFA + Médailles + Trophée + Bourse</div>
+        <div class="prize-card prize-gym"><strong>🤸 Rubrique Gymnastique</strong><br>• 100 000 FCFA + Médailles + Trophée + Bourse</div>
+        <div class="prize-card prize-art"><strong>🎨 Rubrique L'Art</strong><br>• 100 000 FCFA + Médailles + Trophée + Bourse</div>
+        <p><strong>Total dotations financières : 1 100 000 FCFA</strong> + récompenses surprises partenaires.</p>
+    </section>
+
+    <!-- BLOC 3 Organisation -->
+    <section>
+        <div class="gold-border text-center"><h2>BLOC 3 — Structure Organisationnelle</h2></div>
+        <h3>Au niveau central (équipe dirigeante)</h3>
+        <ul><li>Direction générale du projet</li><li>Coordination des sections</li><li>Production supports pédagogiques</li><li>Relations sponsors, universités, médias</li><li>Organisation compétitions et séminaires</li></ul>
+        <h3>Au niveau établissement — Le Bureau des 5</h3>
+        <p>Dans chaque établissement, un Club Olympus Elites est créé, dirigé par 5 élèves supervisés par des professeurs référents.</p>
+        <table>
+            <thead><tr><th>Poste</th><th>Profil</th><th>Responsabilités principales</th></tr></thead>
+            <tbody>
+                <tr><td>Président / Ambassadeur</td><td>Meilleur(e) élève de l'école</td><td>Représentation, coordination générale</td></tr>
+                <tr><td>Secrétaire</td><td>Organisé(e) et rigoureux(se)</td><td>Inscriptions, listes, archives</td></tr>
+                <tr><td>Responsable Sport</td><td>Sportif(ve) reconnu(e)</td><td>Présélections, entraînements</td></tr>
+                <tr><td>Responsable Intellectuel</td><td>Fort(e) en cours</td><td>Séances logique, préparations</td></tr>
+                <tr><td>Responsable Communication</td><td>Créatif(ve), réseaux sociaux</td><td>Réseaux sociaux, affichage, personnalisation maillots</td></tr>
+            </tbody>
+        <table>
+        <p><strong>Superviseurs adultes :</strong> Professeur d’EPS (épreuves sportives) + Professeur Principal (intellectuel, séminaires).</p>
+    </section>
+
+    <!-- BLOC 4 Calendrier -->
+    <section>
+        <div class="gold-border text-center"><h2>BLOC 4 — Calendrier Officiel des Phases</h2></div>
+        <table>
+            <thead><tr><th>Phase</th><th>Période</th><th>Activités principales</th></tr></thead>
+            <tbody>
+                <tr><td>Phase 0 — Installation</td><td>Septembre</td><td>Installation sections, élection Bureaux des 5, formation logique initiale, personnalisation maillots</td></tr>
+                <tr><td>Phase 1 — Lancement</td><td>Octobre</td><td>Octobre Rose, présélections interclasses, Séminaire 1, sensibilisation santé</td></tr>
+                <tr><td>Phase 2 — Éliminatoires</td><td>Novembre</td><td>Novembre Bleu, formation logique, 1ère phase éliminatoire</td></tr>
+                <tr><td>Phase 3 — Compétition</td><td>Janvier</td><td>2ème phase éliminatoire, matchs inter-établissements, épreuves intellectuelles</td></tr>
+                <tr><td>Phase 4 — Finale</td><td>Avril</td><td>Finale officielle, Séminaire 2, remise trophées & récompenses, bilan</td></tr>
+            </tbody>
+        </table>
+        <div class="citation">Valeur stratégique : Octobre Rose & Novembre Bleu ouvrent les portes des établissements et familles avec un message santé fort.</div>
+    </section>
+
+    <!-- BLOC 5 Modèle économique -->
+    <section>
+        <div class="gold-border text-center"><h2>BLOC 5 — Modèle Économique</h2></div>
+        <h3>Frais d'inscription des établissements</h3>
+        <p><strong>150 000 FCFA</strong> par établissement, couvre la participation aux 4 disciplines, présélections, phases de compétition et les tenues officielles personnalisées.</p>
+        <div class="citation">La tenue officielle (maillot+short) est incluse, personnalisable via la plateforme web (module Maillots).</div>
+        <table>
+            <thead><tr><th>Nombre d'écoles</th><th>Recettes inscriptions</th></tr></thead>
+            <tbody><tr><td>10 établissements</td><td>1 500 000 FCFA</td></tr><tr><td>20 établissements</td><td>3 000 000 FCFA</td></tr><tr><td>30 établissements</td><td>4 500 000 FCFA</td></tr></tbody>
+        </table>
+        <h3>Sources de revenus complémentaires</h3>
+        <table>
+            <thead><tr><th>Source</th><th>Montant estimé</th><th>Fréquence</th><th>Ce qu'on leur offre</th></tr></thead>
+            <tbody>
+                <tr><td>Sponsoring entreprises</td><td>500k – 1,5M FCFA</td><td>Par édition</td><td>Visibilité stands, maillots, réseaux</td></tr>
+                <tr><td>Universités privées (séminaires)</td><td>À négocier</td><td>2x/an</td><td>Accès direct à des milliers de lycéens</td></tr>
+                <tr><td>Billetterie Grande Finale</td><td>Variable</td><td>Annuel</td><td>—</td></tr>
+                <tr><td>Partenariat médias</td><td>Échange ou cash</td><td>Par édition</td><td>Couverture exclusive, replays</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- BLOC 6 Partenariats + BLOC7 communication & plateforme (synthèse) -->
+    <section>
+        <div class="gold-border text-center"><h2>BLOC 6 & 7 — Partenariats, Communication, Plateforme</h2></div>
+        <h3>Ministère de l'Éducation</h3>
+        <p>Patronage officiel : Olympus Elites prépare gratuitement les élèves aux concours via la logique. Légitimité institutionnelle totale.</p>
+        <h3>Universités privées & entreprises</h3>
+        <p>Argument : accès direct aux lycéens, stands, branding sur maillots, bourses d'études.</p>
+        <h3>Stratégie de Communication</h3>
+        <ul><li>Avant : Réseaux sociaux (Instagram/TikTok), teaser vidéo, affiches, ambassadeurs élèves.</li>
+        <li>Pendant : Lives matchs, scores temps réel, micros-trottoirs.</li>
+        <li>Après : Vidéo cérémonie, dossier de presse, bilan partenaires, teaser prochaine édition.</li></ul>
+        <h3>Plateforme Numérique PWA</h3>
+        <ul><li><strong>Module Maillots</strong> : personnalisation (couleurs, logo, noms) avec aperçu 3D, commande intégrée.</li>
+        <li>Inscription & paiement Mobile Money, Bureau des 5, Live Center, Formation Logique (quiz PDF), Orientation (fiches universités).</li>
+        <li>Social Wall intégrant TikTok/Instagram.</li></ul>
+    </section>
+
+    <!-- BLOC 8 Plan d'action 90 jours -->
+    <section>
+        <div class="gold-border text-center"><h2>BLOC 8 — Plan d'Action 90 Jours (Démarrage)</h2></div>
+        <ul>
+            <li><strong>Semaines 1-2 :</strong> Constitution équipe core, réunion cadrage.</li>
+            <li><strong>Semaines 3-4 :</strong> Dossier de sponsoring, identité visuelle (logo).</li>
+            <li><strong>Semaines 5-6 :</strong> Démarcher 3 à 5 établissements pilotes.</li>
+            <li><strong>Semaines 7-8 :</strong> Premier sponsor signé, comptes réseaux sociaux.</li>
+            <li><strong>Semaines 9-10 :</strong> Lancement inscriptions officielles, contact Ministère.</li>
+            <li><strong>Semaines 11-12 :</strong> Installation premiers Bureaux des 5, activation module Maillots.</li>
+            <li><strong>Septembre :</strong> Phase 0 — installation sections, commande maillots.</li>
+            <li><strong>Octobre :</strong> Lancement officiel + Octobre Rose + Séminaire 1.</li>
+        </ul>
+        <h3>Checklist démarrage</h3>
+        <ul>
+            <li>✅ Équipe fondatrice constituée (min. 5 pers.)</li><li>✅ Nom, logo, identité visuelle</li><li>✅ Dossier sponsoring prêt</li>
+            <li>✅ Comptes réseaux actifs</li><li>✅ 3 établissements confirmés</li><li>✅ 1 sponsor signé</li>
+            <li>✅ Budget prévisionnel validé</li><li>✅ Date lancement fixée (début sept)</li>
+            <li>✅ Règlement officiel rédigé</li><li>✅ Supports formation logique prêts</li>
+            <li>✅ Module Maillots opérationnel</li><li>✅ Partenariats universités confirmés</li>
+        </ul>
+    </section>
+
+    <footer>
+        <p style="font-size: 1.2rem; font-weight: bold;">OLYMPUS ELITES</p>
+        <p>« Ensemble, faisons d'Olympus Elites une référence nationale de l'excellence scolaire et sportive. »</p>
+        <p>Côte d'Ivoire — Programme Inter-Établissements d'Excellence Scolaire et Sportive</p>
+    </footer>
+</div>
+</body>
+</html>
